@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum Mode {rfid, qr, pin}
+enum Mode {qr, pin}
 
-final modeProvider = StateProvider<Mode>((ref) => Mode.rfid);
+final modeProvider = StateProvider<Mode>((ref) => Mode.pin);

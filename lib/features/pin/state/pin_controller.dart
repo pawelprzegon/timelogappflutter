@@ -24,6 +24,9 @@ class PinState {
     required this.error,
   });
 
+  bool get isEmpty => pin.isEmpty;
+  bool get isComplete => pin.length == kPinLength;
+
   PinState copyWith({
     String? pin,
     bool? isSubmitting,
@@ -57,7 +60,7 @@ class PinController extends StateNotifier<PinState> {
     state = state.copyWith(pin: next, error: null);
 
     if (next.length == kPinLength) {
-      submit();
+      submit(); // celowo bez await — UI nie ma się “zawieszać”
     }
   }
 
@@ -80,16 +83,18 @@ class PinController extends StateNotifier<PinState> {
     if (state.isSubmitting) return;
     if (state.pin.length != kPinLength) return;
 
-    final pinInt = int.tryParse(state.pin);
+    // 1) “Zamrażamy” PIN na czas requestu
+    final pinStr = state.pin;
+    final pinInt = int.tryParse(pinStr);
     if (pinInt == null) {
-      state = state.copyWith(pin: '', error: 'Nieprawidłowy PIN');
+      state = PinState.initial.copyWith(error: 'Nieprawidłowy PIN');
       return;
     }
 
     state = state.copyWith(isSubmitting: true, error: null);
 
     try {
-      // 🔥 bierzemy zawsze aktualne API + aktualny token
+      // 2) Bierzemy zawsze aktualne API + token
       final DeviceApi api = _ref.read(deviceApiProvider);
 
       // DEBUG: pokaż token (zamaskowany)
@@ -99,11 +104,13 @@ class PinController extends StateNotifier<PinState> {
 
       final DeviceResult res = await api.getActiveWithStatus(pin: pinInt);
 
+      // Jeżeli notifier został disposed w trakcie await — wychodzimy.
+      if (!mounted) return;
+
       // ignore: avoid_print
       print('PIN submit result: status=${res.status} body=${res.body}');
 
-
-      if (res.status == 200 && res.body != null) {
+      if (res.status == 200 && res.body != null && res.body!.isNotEmpty) {
         _ref.read(sessionControllerProvider.notifier).openFromActive(
           auth: AuthInput.pin(pinInt),
           body: res.body!,
@@ -113,7 +120,6 @@ class PinController extends StateNotifier<PinState> {
       }
 
       if (res.status == 204) {
-        // nic aktywnego — tylko wyczyść PIN
         state = PinState.initial;
         return;
       }
@@ -122,36 +128,34 @@ class PinController extends StateNotifier<PinState> {
 
       if (res.status == 401) {
         final hasToken = _ref.read(deviceTokenProvider).trim().isNotEmpty;
-        state = state.copyWith(
-          isSubmitting: false,
-          pin: '',
-          error: msg ?? (hasToken
-              ? 'Token urządzenia jest niepoprawny lub urządzenie nie jest zarejestrowane.'
-              : 'Brak tokena urządzenia – zapisz go w panelu Admina.'),
+        state = PinState.initial.copyWith(
+          error: msg ??
+              (hasToken
+                  ? 'Token urządzenia jest niepoprawny lub urządzenie nie jest zarejestrowane.'
+                  : 'Brak tokena urządzenia – zapisz go w panelu Admina.'),
         );
         return;
       }
 
       if (res.status == 400) {
-        state = state.copyWith(
-          isSubmitting: false,
-          pin: '',
+        state = PinState.initial.copyWith(
           error: msg ?? 'Błędne dane (PIN/QR/NFC).',
         );
         return;
       }
 
-      state = state.copyWith(
-        isSubmitting: false,
-        pin: '',
+      state = PinState.initial.copyWith(
         error: msg ?? 'Błąd serwera (${res.status})',
       );
     } catch (_) {
-      state = state.copyWith(
-        isSubmitting: false,
-        pin: '',
+      if (!mounted) return;
+      state = PinState.initial.copyWith(
         error: 'Błąd połączenia z serwerem',
       );
+    } finally {
+      // 3) Gwarantujemy, że isSubmitting wróci do false
+      if (!mounted) return;
+      state = state.copyWith(isSubmitting: false);
     }
   }
 }

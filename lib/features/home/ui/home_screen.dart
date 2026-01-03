@@ -50,7 +50,6 @@ class HomeScreen extends ConsumerWidget {
       }
 
       return switch (mode) {
-        Mode.rfid => const Center(child: Text('RFID view (placeholder)', style: TextStyle(color: Colors.white70))),
         Mode.qr => const Center(child: Text('QR view (placeholder)', style: TextStyle(color: Colors.white70))),
         Mode.pin => const PinPane(),
       };
