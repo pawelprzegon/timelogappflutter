@@ -3,7 +3,6 @@ import '../../device/data/device_api.dart';
 import '../../device/data/device_providers.dart';
 import '../../session/model/auth_input.dart';
 import '../../session/state/session_controller.dart';
-import 'rfid_gate_provider.dart';
 
 class RfidState {
   final bool isSubmitting;
@@ -27,9 +26,7 @@ class RfidController extends StateNotifier<RfidState> {
   DateTime? _lastAt;
 
   Future<void> handleUid(String uid) async {
-    final allowed = _ref.read(rfidGateProvider);
-    if (!allowed) return;
-
+    // anty-spam
     final now = DateTime.now();
     if (_lastUid == uid && _lastAt != null) {
       if (now.difference(_lastAt!).inMilliseconds < 1500) return;
@@ -41,19 +38,23 @@ class RfidController extends StateNotifier<RfidState> {
     state = state.copyWith(isSubmitting: true);
 
     try {
-      final DeviceApi api = _ref.read(deviceApiProvider);
+      // ignore: avoid_print
+      print('RFID -> API uid=$uid');
+
+      final api = _ref.read(deviceApiProvider);
       final res = await api.getActiveWithStatus(nfcTag: uid);
 
+      // ignore: avoid_print
+      print('RFID API result status=${res.status} body=${res.body}');
+
       if (res.status == 200 && res.body != null) {
-        _ref.read(sessionControllerProvider.notifier).openFromActive(
-          auth: AuthInput.nfc(uid),
-          body: res.body!,
+        await _ref.read(sessionControllerProvider.notifier).openFromAuth(
+          AuthInput.nfc(uid),
         );
       }
     } finally {
-      state = state.copyWith(isSubmitting: false);
+      if (mounted) state = state.copyWith(isSubmitting: false);
     }
   }
+
 }
-
-

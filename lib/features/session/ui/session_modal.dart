@@ -1,136 +1,147 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../state/session_controller.dart';
 
 class SessionModal extends ConsumerWidget {
   const SessionModal({super.key});
 
+  List<Map<String, dynamic>> _contracts(Map<String, dynamic>? user) {
+    final raw = user?['contracts'];
+    if (raw is List) {
+      return raw.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+    }
+    return const [];
+  }
+
+  String _userTitle(Map<String, dynamic>? user) {
+    if (user == null) return '';
+    final fn = (user['firstName'] ?? '').toString();
+    final ln = (user['lastName'] ?? '').toString();
+    final full = ('$fn $ln').trim();
+    return full.isEmpty ? 'Użytkownik' : full;
+  }
+
+  Future<int?> _pickContractId(BuildContext context, List<Map<String, dynamic>> contracts) async {
+    if (contracts.isEmpty) return null;
+
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Wybierz kontrakt'),
+          content: SizedBox(
+            width: 420,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: contracts.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (_, i) {
+                final c = contracts[i];
+                final id = c['id'];
+                final idInt = (id is int) ? id : int.tryParse(id?.toString() ?? '');
+                final pos = (c['contractPosition'] ?? '').toString();
+                final type = (c['contractType'] ?? '').toString();
+                final title = [pos, type].where((s) => s.trim().isNotEmpty).join(' • ');
+                return ListTile(
+                  title: Text(title.isEmpty ? 'Kontrakt ${idInt ?? ''}' : title),
+                  onTap: () => Navigator.of(ctx).pop(idInt),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final st = ref.watch(sessionControllerProvider);
+    final state = ref.watch(sessionControllerProvider);
     final ctrl = ref.read(sessionControllerProvider.notifier);
 
-    final a = st.active;
-    if (a == null) return const SizedBox.shrink();
+    final user = state.user;
+    final active = state.active;
+    final contracts = _contracts(user);
 
-    final title = a.contract?.contractPosition.isNotEmpty == true
-        ? a.contract!.contractPosition
-        : 'Sesja użytkownika';
-
-    String fmt(DateTime? dt) {
-      if (dt == null) return '-';
-      final local = dt.toLocal();
-      final h = local.hour.toString().padLeft(2, '0');
-      final m = local.minute.toString().padLeft(2, '0');
-      return '$h:$m';
-    }
-
-    // Logika przycisków:
-    final canStartShift = !a.hasShift;
-    final canStopShift = a.hasShift;
-    final canStartBreak = a.hasShift && !a.isOnBreak;
-    final canStopBreak = a.hasShift && a.isOnBreak;
-
-    return Material(
-      color: Colors.transparent,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Card(
-            color: const Color(0xFF10151D),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
                 children: [
+                  Expanded(
+                    child: Text(
+                      _userTitle(user),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: state.isBusy ? null : ctrl.close,
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              if (state.error != null) ...[
+                Text(state.error!, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 8),
+              ],
+
+              // Status aktywności
+              if (active == null) ...[
+                const Text('Brak aktywnej zmiany.'),
+              ] else ...[
+                Text('Aktywna zmiana: ${active.contract?.contractPosition ?? '-'}'),
+                Text(active.isOnBreak ? 'Status: PRZERWA' : 'Status: PRACA'),
+              ],
+
+              const SizedBox(height: 16),
+
+              if (state.isBusy) const CircularProgressIndicator(),
+              if (!state.isBusy) ...[
+                if (active == null) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final id = await _pickContractId(context, contracts);
+                        if (id == null) return;
+                        await ctrl.startShiftWithContract(id);
+                      },
+                      child: const Text('Start shift'),
+                    ),
+                  ),
+                ] else ...[
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        child: ElevatedButton(
+                          onPressed: ctrl.stopShift,
+                          child: const Text('Stop shift'),
                         ),
                       ),
-                      IconButton(
-                        onPressed: st.isBusy ? null : ctrl.close,
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 6),
-                  Text('User ID: ${a.userId}', style: const TextStyle(color: Colors.white70)),
-                  if (a.contract != null) ...[
-                    const SizedBox(height: 6),
-                    Text('Typ: ${a.contract!.contractType}', style: const TextStyle(color: Colors.white70)),
-                  ],
-
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(child: _kv('Start', fmt(a.start))),
                       const SizedBox(width: 12),
-                      Expanded(child: _kv('Przerwa', fmt(a.workbreak))),
-                    ],
-                  ),
-
-                  if (st.error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(st.error!, style: const TextStyle(color: Colors.redAccent)),
-                  ],
-
-                  const SizedBox(height: 16),
-
-                  if (st.isBusy) ...[
-                    const Center(child: CircularProgressIndicator()),
-                    const SizedBox(height: 12),
-                  ],
-
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      FilledButton(
-                        onPressed: (st.isBusy || !canStartShift) ? null : ctrl.startShift,
-                        child: const Text('Start zmiany'),
-                      ),
-                      FilledButton(
-                        onPressed: (st.isBusy || !canStopShift) ? null : ctrl.stopShift,
-                        child: const Text('Stop zmiany'),
-                      ),
-                      OutlinedButton(
-                        onPressed: (st.isBusy || !canStartBreak) ? null : ctrl.startBreak,
-                        child: const Text('Start przerwy'),
-                      ),
-                      OutlinedButton(
-                        onPressed: (st.isBusy || !canStopBreak) ? null : ctrl.stopBreak,
-                        child: const Text('Stop przerwy'),
-                      ),
-                      TextButton(
-                        onPressed: st.isBusy ? null : ctrl.refresh,
-                        child: const Text('Odśwież'),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: active.isOnBreak ? ctrl.stopBreak : ctrl.startBreak,
+                          child: Text(active.isOnBreak ? 'Stop break' : 'Start break'),
+                        ),
                       ),
                     ],
                   ),
                 ],
-              ),
-            ),
+              ],
+            ],
           ),
         ),
       ),
     );
   }
-}
-
-Widget _kv(String k, String v) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(k, style: const TextStyle(color: Colors.white54)),
-      const SizedBox(height: 4),
-      Text(v, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-    ],
-  );
 }

@@ -16,6 +16,8 @@ final rfidUidStreamProvider = StreamProvider<String>((ref) {
     onDiscovered: (tag) async {
       if (controller.isClosed) return;
       final uid = tag.hexId.toUpperCase();
+      // ignore: avoid_print
+      print('RFID UID (dart): $uid');
       controller.add(uid);
     },
 

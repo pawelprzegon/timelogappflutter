@@ -83,9 +83,7 @@ class PinController extends StateNotifier<PinState> {
     if (state.isSubmitting) return;
     if (state.pin.length != kPinLength) return;
 
-    // 1) “Zamrażamy” PIN na czas requestu
-    final pinStr = state.pin;
-    final pinInt = int.tryParse(pinStr);
+    final pinInt = int.tryParse(state.pin);
     if (pinInt == null) {
       state = PinState.initial.copyWith(error: 'Nieprawidłowy PIN');
       return;
@@ -94,66 +92,14 @@ class PinController extends StateNotifier<PinState> {
     state = state.copyWith(isSubmitting: true, error: null);
 
     try {
-      // 2) Bierzemy zawsze aktualne API + token
-      final DeviceApi api = _ref.read(deviceApiProvider);
-
-      // DEBUG: pokaż token (zamaskowany)
-      final t = _ref.read(deviceTokenProvider);
-      // ignore: avoid_print
-      print('PIN submit: tokenLen=${t.length} token="${_maskToken(t)}" pin=$pinInt');
-
-      final DeviceResult res = await api.getActiveWithStatus(pin: pinInt);
-
-      // Jeżeli notifier został disposed w trakcie await — wychodzimy.
+      await _ref.read(sessionControllerProvider.notifier)
+          .openFromAuth(AuthInput.pin(pinInt));
       if (!mounted) return;
-
-      // ignore: avoid_print
-      print('PIN submit result: status=${res.status} body=${res.body}');
-
-      if (res.status == 200 && res.body != null && res.body!.isNotEmpty) {
-        _ref.read(sessionControllerProvider.notifier).openFromActive(
-          auth: AuthInput.pin(pinInt),
-          body: res.body!,
-        );
-        state = PinState.initial;
-        return;
-      }
-
-      if (res.status == 204) {
-        state = PinState.initial;
-        return;
-      }
-
-      final msg = res.body?['message']?.toString();
-
-      if (res.status == 401) {
-        final hasToken = _ref.read(deviceTokenProvider).trim().isNotEmpty;
-        state = PinState.initial.copyWith(
-          error: msg ??
-              (hasToken
-                  ? 'Token urządzenia jest niepoprawny lub urządzenie nie jest zarejestrowane.'
-                  : 'Brak tokena urządzenia – zapisz go w panelu Admina.'),
-        );
-        return;
-      }
-
-      if (res.status == 400) {
-        state = PinState.initial.copyWith(
-          error: msg ?? 'Błędne dane (PIN/QR/NFC).',
-        );
-        return;
-      }
-
-      state = PinState.initial.copyWith(
-        error: msg ?? 'Błąd serwera (${res.status})',
-      );
+      state = PinState.initial;
     } catch (_) {
       if (!mounted) return;
-      state = PinState.initial.copyWith(
-        error: 'Błąd połączenia z serwerem',
-      );
+      state = PinState.initial.copyWith(error: 'Błąd połączenia z serwerem');
     } finally {
-      // 3) Gwarantujemy, że isSubmitting wróci do false
       if (!mounted) return;
       state = state.copyWith(isSubmitting: false);
     }
