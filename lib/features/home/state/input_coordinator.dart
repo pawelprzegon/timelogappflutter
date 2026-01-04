@@ -2,41 +2,42 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../qr/state/qr_controller.dart';
+import '../../session/model/auth_input.dart';
+import '../../session/state/session_controller.dart';
 import 'mode_controller.dart';
-import '../../session/state/session_controller.dart';
-
-import '../../pin/state/pin_controller.dart';
-import '../../session/state/session_controller.dart';
-import '../../rfid/state/rfid_controller.dart'; // ścieżkę dopasuj do swojego układu
-
 
 class InputCoordinatorState {
   final bool cameraActive;
-  final DateTime? qrEndsAt;
+  final DateTime? qrUntil;
 
   const InputCoordinatorState({
     required this.cameraActive,
-    required this.qrEndsAt,
+    required this.qrUntil,
   });
 
-  static const initial = InputCoordinatorState(cameraActive: false, qrEndsAt: null);
+  static const initial =
+  InputCoordinatorState(cameraActive: false, qrUntil: null);
+
+  // ✅ do gate’a
+  bool get isQrActive => cameraActive;
 
   int get secondsLeft {
-    final until = qrEndsAt;
+    final until = qrUntil;
     if (until == null) return 0;
-    final s = until.difference(DateTime.now()).inSeconds;
-    return s < 0 ? 0 : s;
-  }
 
-  bool get isQrActive => cameraActive && secondsLeft > 0;
+    final ms = until.difference(DateTime.now()).inMilliseconds;
+    if (ms <= 0) return 0;
+
+    return (ms / 1000).ceil();
+  }
 
   InputCoordinatorState copyWith({
     bool? cameraActive,
-    DateTime? qrEndsAt,
+    DateTime? qrUntil,
   }) {
     return InputCoordinatorState(
       cameraActive: cameraActive ?? this.cameraActive,
-      qrEndsAt: qrEndsAt,
+      qrUntil: qrUntil,
     );
   }
 }
@@ -54,27 +55,30 @@ class InputCoordinator extends StateNotifier<InputCoordinatorState> {
 
   static const Duration _defaultQrTimeout = Duration(seconds: 5);
 
-  bool get _sessionOpen => _ref.read(sessionControllerProvider).isOpen;
+  // anty-spam dla QR
+  String? _lastQr;
+  DateTime? _lastQrAt;
 
   void showPin() {
     _cancelTimer();
     _ref.read(qrControllerProvider.notifier).stopCamera();
     _ref.read(modeProvider.notifier).state = Mode.pin;
 
-    state = state.copyWith(cameraActive: false, qrEndsAt: null);
+    state = state.copyWith(cameraActive: false, qrUntil: null);
   }
 
   void showQr({Duration timeout = _defaultQrTimeout}) {
-    // Jeśli modal otwarty → nie włączamy kamery
-    if (_sessionOpen) return;
-
     _cancelTimer();
+
+    // Jeśli modal jest otwarty / jesteśmy busy – nie włączamy kamery
+    final session = _ref.read(sessionControllerProvider);
+    if (session.isOpen || session.isBusy) return;
 
     _ref.read(modeProvider.notifier).state = Mode.qr;
     _ref.read(qrControllerProvider.notifier).startCamera();
 
     final until = DateTime.now().add(timeout);
-    state = state.copyWith(cameraActive: true, qrEndsAt: until);
+    state = state.copyWith(cameraActive: true, qrUntil: until);
 
     _qrTimer = Timer(timeout, () {
       if (!mounted) return;
@@ -82,25 +86,24 @@ class InputCoordinator extends StateNotifier<InputCoordinatorState> {
     });
   }
 
-  Future<void> onRfidScanned(String uid) async {
-    // 1) Sprawdź gate
-    final mode = _ref.read(modeProvider);
-    final pin = _ref.read(pinControllerProvider).pin;
-    final sessionOpen = _ref.read(sessionControllerProvider).isOpen;
+  void onQrScanned(String code) {
+    // 1) blokada gdy modal otwarty / busy
+    final session = _ref.read(sessionControllerProvider);
+    if (session.isOpen || session.isBusy) return;
 
-    final isPinPane = mode == Mode.pin;
-    final pinEmpty = pin.isEmpty;
-    final qrInactive = !state.cameraActive; // albo !state.isQrActive jeśli dodasz getter
-    final allowed = isPinPane && pinEmpty && !sessionOpen && qrInactive;
-
-    if (!allowed) {
-      // ignore: avoid_print
-      print('RFID ignored (gate) uid=$uid mode=$mode pinEmpty=$pinEmpty sessionOpen=$sessionOpen cameraActive=${state.cameraActive}');
-      return;
+    // 2) anty-spam
+    final now = DateTime.now();
+    if (_lastQr == code && _lastQrAt != null) {
+      if (now.difference(_lastQrAt!).inMilliseconds < 1500) return;
     }
+    _lastQr = code;
+    _lastQrAt = now;
 
-    // 2) Jeśli wolno → odpal kontroler RFID
-    await _ref.read(rfidControllerProvider.notifier).handleUid(uid);
+    // 3) gasimy kamerę i wracamy do PIN natychmiast
+    showPin();
+
+    // 4) uruchamiamy flow: getUser + getActiveWithStatus
+    _ref.read(sessionControllerProvider.notifier).openFromAuth(AuthInput.qr(code));
   }
 
   void _cancelTimer() {
