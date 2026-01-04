@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/ui/responsive.dart';
 import '../../admin/state/admin_controller.dart';
+import '../../qr/ui/qr_pane.dart';
+import '../../rfid/state/rfid_bootstrap.dart';
+import '../../rfid/ui/rfid_listener.dart';
 import '../state/clock_controller.dart';
 import '../state/connectivity_controller.dart';
 import '../state/mode_controller.dart';
@@ -26,6 +29,7 @@ class HomeScreen extends ConsumerWidget {
     final conn = ref.watch(connectivityProvider);
     final admin = ref.watch(adminControllerProvider);
     final mode = ref.watch(modeProvider);
+    ref.watch(rfidBootstrapProvider);
 
     final offline = !conn.isOnline;
 
@@ -50,7 +54,7 @@ class HomeScreen extends ConsumerWidget {
       }
 
       return switch (mode) {
-        Mode.qr => const Center(child: Text('QR view (placeholder)', style: TextStyle(color: Colors.white70))),
+        Mode.qr => const QrPane(),
         Mode.pin => const PinPane(),
       };
     }
@@ -65,6 +69,7 @@ class HomeScreen extends ConsumerWidget {
               padding: EdgeInsets.all(14 * scale),
               child: Stack(
                 children: [
+                  const RfidListener(),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

@@ -1,93 +1,91 @@
 import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../pin/state/pin_controller.dart';
-import '../../session/state/session_controller.dart';
-import 'connectivity_controller.dart';
-import 'pane_controller.dart';
+import '../../qr/state/qr_controller.dart';
+import 'mode_controller.dart';
 
-class InputState {
+class InputCoordinatorState {
   final bool cameraActive;
-  final DateTime? qrEndsAt;
+  final DateTime? qrUntil;
 
-  const InputState({
+  const InputCoordinatorState({
     required this.cameraActive,
-    required this.qrEndsAt,
+    required this.qrUntil,
   });
 
-  static const initial = InputState(cameraActive: false, qrEndsAt: null);
+  static const initial = InputCoordinatorState(cameraActive: false, qrUntil: null);
 
-  InputState copyWith({
+  int get secondsLeft {
+    final until = qrUntil;
+    if (until == null) return 0;
+    final s = until.difference(DateTime.now()).inSeconds;
+    return s < 0 ? 0 : s;
+  }
+
+  bool get isQrActive {
+    final until = qrUntil;
+    if (until == null) return false;
+    return DateTime.now().isBefore(until);
+  }
+
+  InputCoordinatorState copyWith({
     bool? cameraActive,
-    DateTime? qrEndsAt,
+    DateTime? qrUntil,
   }) {
-    return InputState(
+    return InputCoordinatorState(
       cameraActive: cameraActive ?? this.cameraActive,
-      qrEndsAt: qrEndsAt,
+      qrUntil: qrUntil,
     );
   }
 }
 
 final inputCoordinatorProvider =
-StateNotifierProvider<InputCoordinator, InputState>((ref) {
+StateNotifierProvider<InputCoordinator, InputCoordinatorState>((ref) {
   return InputCoordinator(ref);
 });
 
-class InputCoordinator extends StateNotifier<InputState> {
-  InputCoordinator(this._ref) : super(InputState.initial);
+class InputCoordinator extends StateNotifier<InputCoordinatorState> {
+  InputCoordinator(this._ref) : super(InputCoordinatorState.initial);
 
   final Ref _ref;
   Timer? _qrTimer;
 
-  void activatePin() {
-    _qrTimer?.cancel();
-    state = state.copyWith(cameraActive: false, qrEndsAt: null);
-    _ref.read(paneProvider.notifier).state = Pane.pin;
+  static const Duration _defaultQrTimeout = Duration(seconds: 5);
+
+  /// Wejście w PIN: wyłącz kamerę, anuluj timer, ustaw tryb PIN.
+  void showPin() {
+    _cancelTimer();
+    _ref.read(qrControllerProvider.notifier).stopCamera();
+    _ref.read(modeProvider.notifier).state = Mode.pin;
+
+    state = state.copyWith(cameraActive: false, qrUntil: null);
   }
 
-  void activateQr({Duration duration = const Duration(seconds: 5)}) {
-    _qrTimer?.cancel();
+  /// Wejście w QR: ustaw tryb QR, włącz kamerę, załóż timer auto-powrotu.
+  void showQr({Duration timeout = _defaultQrTimeout}) {
+    _cancelTimer();
 
-    // UX/bezpieczeństwo: gdy przechodzimy na QR, czyścimy ewentualnie wpisany PIN.
-    // Dzięki temu po powrocie do PIN pole jest puste, a RFID może działać.
-    _ref.read(pinControllerProvider.notifier).clear();
+    _ref.read(modeProvider.notifier).state = Mode.qr;
+    _ref.read(qrControllerProvider.notifier).startCamera();
 
-    final endsAt = DateTime.now().add(duration);
+    final until = DateTime.now().add(timeout);
+    state = state.copyWith(cameraActive: true, qrUntil: until);
 
-    state = state.copyWith(cameraActive: true, qrEndsAt: endsAt);
-    _ref.read(paneProvider.notifier).state = Pane.qr;
-
-    _qrTimer = Timer(duration, () {
-      // Timer może odpalić po dispose — dlatego nie dotykamy już ref tutaj,
-      // tylko robimy bezpieczny powrót przez state + paneProvider.
-      // (StateNotifier sam się dispose'uje, timer w dispose anulujemy.)
-      activatePin();
+    _qrTimer = Timer(timeout, () {
+      // Timer odpala się “asynchronicznie”, więc upewniamy się, że notifier żyje.
+      if (!mounted) return;
+      showPin();
     });
   }
 
-  /// Jedno miejsce prawdy: czy wolno przyjąć RFID *teraz*.
-  bool canAcceptRfid() {
-    final conn = _ref.read(connectivityProvider);
-    if (!conn.isOnline) return false;
-
-    final session = _ref.read(sessionControllerProvider);
-    if (session.isOpen) return false;
-
-    if (state.cameraActive) return false;
-
-    final pane = _ref.read(paneProvider);
-    if (pane != Pane.pin) return false;
-
-    final pin = _ref.read(pinControllerProvider);
-    if (!pin.isEmpty) return false; // ktoś już wpisuje PIN
-
-    return true;
+  void _cancelTimer() {
+    _qrTimer?.cancel();
+    _qrTimer = null;
   }
 
   @override
   void dispose() {
-    _qrTimer?.cancel();
+    _cancelTimer();
     super.dispose();
   }
 }

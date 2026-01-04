@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../state/mode_controller.dart';
+import '../../state/input_coordinator.dart';
 
 class ModeToggle extends ConsumerWidget {
   const ModeToggle({super.key, required this.isEnabled});
@@ -11,13 +13,8 @@ class ModeToggle extends ConsumerWidget {
     final mode = ref.watch(modeProvider);
 
     int toIndex(Mode m) => switch (m) {
-      Mode.qr => 1,
       Mode.pin => 0,
-    };
-
-    Mode fromIndex(int i) => switch (i) {
-      1 => Mode.qr,
-      _ => Mode.pin,
+      Mode.qr => 1,
     };
 
     final selectedIndex = toIndex(mode);
@@ -30,7 +27,14 @@ class ModeToggle extends ConsumerWidget {
           height: 80,
           radius: 20,
           selectedIndex: selectedIndex,
-          onChanged: (i) => ref.read(modeProvider.notifier).state = fromIndex(i),
+          onChanged: (i) {
+            final coord = ref.read(inputCoordinatorProvider.notifier);
+            if (i == 1) {
+              coord.showQr();  // QR na 5s
+            } else {
+              coord.showPin(); // PIN zawsze
+            }
+          },
           items: const [
             _SegItem(icon: Icons.dialpad, text: 'PIN'),
             _SegItem(icon: Icons.qr_code, text: 'QR'),
@@ -137,9 +141,7 @@ class _SegmentCell extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: backgroundColor,
-          border: showLeftDivider
-              ? Border(left: BorderSide(color: dividerColor, width: 1))
-              : null,
+          border: showLeftDivider ? Border(left: BorderSide(color: dividerColor, width: 1)) : null,
         ),
         child: SizedBox(
           height: height,

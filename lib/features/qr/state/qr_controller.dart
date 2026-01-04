@@ -1,24 +1,30 @@
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../home/state/pane_controller.dart';
 
-class QrController {
-  Timer? _t;
+class QrState {
+  final bool cameraActive;
 
-  void openQr(Ref ref) {
-    _t?.cancel();
-    ref.read(paneProvider.notifier).state = Pane.qr;
+  const QrState({required this.cameraActive});
 
-    _t = Timer(const Duration(seconds: 5), () {
-      // wróć do PIN
-      ref.read(paneProvider.notifier).state = Pane.pin;
-    });
+  static const initial = QrState(cameraActive: false);
+
+  QrState copyWith({bool? cameraActive}) =>
+      QrState(cameraActive: cameraActive ?? this.cameraActive);
+}
+
+final qrControllerProvider = StateNotifierProvider<QrController, QrState>((ref) {
+  return QrController();
+});
+
+class QrController extends StateNotifier<QrState> {
+  QrController() : super(QrState.initial);
+
+  void startCamera() {
+    if (state.cameraActive) return;
+    state = state.copyWith(cameraActive: true);
   }
 
-  void closeQr(Ref ref) {
-    _t?.cancel();
-    ref.read(paneProvider.notifier).state = Pane.pin;
+  void stopCamera() {
+    if (!state.cameraActive) return;
+    state = state.copyWith(cameraActive: false);
   }
-
-  void dispose() => _t?.cancel();
 }

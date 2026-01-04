@@ -24,8 +24,7 @@ class PinState {
     required this.error,
   });
 
-  bool get isEmpty => pin.isEmpty;
-  bool get isComplete => pin.length == kPinLength;
+  static const _unset = Object();
 
   PinState copyWith({
     String? pin,
@@ -35,12 +34,13 @@ class PinState {
     return PinState(
       pin: pin ?? this.pin,
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      error: error,
+      error: error ?? this.error,
     );
   }
 
   static const initial = PinState(pin: '', isSubmitting: false, error: null);
 }
+
 
 final pinControllerProvider =
 StateNotifierProvider<PinController, PinState>((ref) {

@@ -1,0 +1,41 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:usbnfcreader/usbnfcreader.dart';
+
+/// Stream UID-ów z ACR122U (np. "04A1B2C3D4").
+/// Hardware działa w tle, a “czy wolno” rozstrzygamy osobno (gate) w kolejnym kroku.
+final rfidUidStreamProvider = StreamProvider<String>((ref) {
+  final controller = StreamController<String>.broadcast();
+  final reader = Usbnfcreader.instance;
+
+  reader.startSession(
+    autoConnect: true,
+
+    // ✅ plugin chce Future<void>
+    onDiscovered: (tag) async {
+      if (controller.isClosed) return;
+      final uid = tag.hexId.toUpperCase();
+      controller.add(uid);
+    },
+
+    onReaderAttached: () async {
+      if (controller.isClosed) return;
+      // ignore: avoid_print
+      print('ACR122U attached');
+    },
+
+    onReaderDetached: () async {
+      if (controller.isClosed) return;
+      // ignore: avoid_print
+      print('ACR122U detached');
+    },
+  );
+
+  ref.onDispose(() {
+    reader.stopSession();
+    controller.close();
+  });
+
+  return controller.stream;
+});
