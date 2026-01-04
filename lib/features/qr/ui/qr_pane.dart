@@ -106,6 +106,7 @@ class _QrPaneState extends ConsumerState<QrPane> {
     if (code == null || code.isEmpty) return;
 
     _handlingDetect = true;
+    ref.read(inputCoordinatorProvider.notifier).bumpIdle();
 
     // 1) natychmiast wracamy do PIN (to też wyłączy kamerę przez coordinator)
     ref.read(inputCoordinatorProvider.notifier).showPin();

@@ -48,7 +48,9 @@ StateNotifierProvider<InputCoordinator, InputCoordinatorState>((ref) {
 });
 
 class InputCoordinator extends StateNotifier<InputCoordinatorState> {
-  InputCoordinator(this._ref) : super(InputCoordinatorState.initial);
+  InputCoordinator(this._ref) : super(InputCoordinatorState.initial) {
+    bumpIdle();
+  }
 
   final Ref _ref;
   Timer? _qrTimer;
@@ -59,20 +61,40 @@ class InputCoordinator extends StateNotifier<InputCoordinatorState> {
   String? _lastQr;
   DateTime? _lastQrAt;
 
+  // ✅ NOWE: idle timer
+  Timer? _idleTimer;
+  static const Duration _idleTimeout = Duration(seconds: 5);
+
+  // ✅ wywołuj przy każdym “działaniu” użytkownika / skanie
+  void bumpIdle() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(_idleTimeout, _goIdle);
+  }
+
+  void _goIdle() {
+    if (!mounted) return;
+
+    // zamykamy modal + wracamy do PIN
+    _ref.read(sessionControllerProvider.notifier).close();
+    showPin();
+  }
+
+  /// Wejście w PIN
   void showPin() {
-    _cancelTimer();
+    _cancelQrTimer();
+    // (opcjonalnie) bumpIdle tu też OK:
+    // bumpIdle();
+
     _ref.read(qrControllerProvider.notifier).stopCamera();
     _ref.read(modeProvider.notifier).state = Mode.pin;
 
     state = state.copyWith(cameraActive: false, qrUntil: null);
   }
 
+  /// Wejście w QR
   void showQr({Duration timeout = _defaultQrTimeout}) {
-    _cancelTimer();
-
-    // Jeśli modal jest otwarty / jesteśmy busy – nie włączamy kamery
-    final session = _ref.read(sessionControllerProvider);
-    if (session.isOpen || session.isBusy) return;
+    _cancelQrTimer();
+    bumpIdle(); // startujemy “bezczynność” od nowa
 
     _ref.read(modeProvider.notifier).state = Mode.qr;
     _ref.read(qrControllerProvider.notifier).startCamera();
@@ -106,14 +128,16 @@ class InputCoordinator extends StateNotifier<InputCoordinatorState> {
     _ref.read(sessionControllerProvider.notifier).openFromAuth(AuthInput.qr(code));
   }
 
-  void _cancelTimer() {
+  void _cancelQrTimer() {
     _qrTimer?.cancel();
     _qrTimer = null;
   }
 
   @override
   void dispose() {
-    _cancelTimer();
+    _cancelQrTimer();
+    _idleTimer?.cancel();
+    _idleTimer = null;
     super.dispose();
   }
 }

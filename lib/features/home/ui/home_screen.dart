@@ -73,54 +73,59 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F14),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // 2) UI pod spodem blokujemy gdy modal otwarty
-            AbsorbPointer(
-              absorbing: session.isOpen,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: Responsive.maxContentWidth(context)),
-                  child: Padding(
-                    padding: EdgeInsets.all(14 * scale),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        HomeHeader(timeText: timeText, scale: scale),
-                        SizedBox(height: 14 * scale),
-
-                        ModeToggle(isEnabled: !offline && !session.isOpen),
-                        SizedBox(height: 10 * scale),
-
-                        if (offline) ...[
-                          OfflineBanner(customText: admin.offlineMessage),
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
+        onPointerMove: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // 2) UI pod spodem blokujemy gdy modal otwarty
+              AbsorbPointer(
+                absorbing: session.isOpen,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: Responsive.maxContentWidth(context)),
+                    child: Padding(
+                      padding: EdgeInsets.all(14 * scale),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          HomeHeader(timeText: timeText, scale: scale),
+                          SizedBox(height: 14 * scale),
+        
+                          ModeToggle(isEnabled: !offline && !session.isOpen),
                           SizedBox(height: 10 * scale),
+        
+                          if (offline) ...[
+                            OfflineBanner(customText: admin.offlineMessage),
+                            SizedBox(height: 10 * scale),
+                          ],
+        
+                          Expanded(child: modePane()),
+        
+                          const HomeFooter(
+                            weatherText: 'Pogoda...',
+                            deviceText: 'Urządzenie...',
+                          ),
                         ],
-
-                        Expanded(child: modePane()),
-
-                        const HomeFooter(
-                          weatherText: 'Pogoda...',
-                          deviceText: 'Urządzenie...',
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-
-            // 3) Overlay modala
-            if (session.isOpen) ...[
-              const Positioned.fill(
-                child: ModalBarrier(dismissible: false, color: Colors.black54),
-              ),
-              const Positioned.fill(
-                child: SessionModal(),
-              ),
+        
+              // 3) Overlay modala
+              if (session.isOpen) ...[
+                const Positioned.fill(
+                  child: ModalBarrier(dismissible: false, color: Colors.black54),
+                ),
+                const Positioned.fill(
+                  child: SessionModal(),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

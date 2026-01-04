@@ -21,12 +21,28 @@ class ContractInfo {
   }
 }
 
+class WorkBreakInfo {
+  final int id;
+  final DateTime? start;
+
+  const WorkBreakInfo({required this.id, required this.start});
+
+  factory WorkBreakInfo.fromJson(Map<String, dynamic> json) {
+    return WorkBreakInfo(
+      id: (json['id'] ?? 0) as int,
+      start: _parseDt(json['start']),
+    );
+  }
+}
+
 class ActiveSession {
   final int id;
   final int userId;
   final ContractInfo? contract;
   final DateTime? start;
-  final DateTime? workbreak;
+
+  /// ✅ teraz to obiekt, nie DateTime
+  final WorkBreakInfo? workbreak;
 
   const ActiveSession({
     required this.id,
@@ -44,12 +60,14 @@ class ActiveSession {
           ? ContractInfo.fromJson(json['contract'] as Map<String, dynamic>)
           : null,
       start: _parseDt(json['start']),
-      workbreak: _parseDt(json['workbreak']),
+      workbreak: (json['workbreak'] is Map<String, dynamic>)
+          ? WorkBreakInfo.fromJson(json['workbreak'] as Map<String, dynamic>)
+          : null,
     );
   }
 
   bool get hasShift => start != null;
-  bool get isOnBreak => workbreak != null;
+  bool get isOnBreak => workbreak?.start != null;
 }
 
 DateTime? _parseDt(dynamic v) {

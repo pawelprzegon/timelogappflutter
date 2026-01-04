@@ -2,82 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../device/data/device_api.dart';
 import '../../device/data/device_providers.dart';
+import '../../home/state/input_coordinator.dart';
 import '../model/active_session.dart';
 import '../model/auth_input.dart';
-
-enum SessionEventKind { success, error }
-
-class SessionEvent {
-  final SessionEventKind kind;
-  final String message;
-  final int id; // żeby event się “różnił” nawet przy tym samym tekście
-
-  const SessionEvent({
-    required this.kind,
-    required this.message,
-    required this.id,
-  });
-
-  static SessionEvent success(String msg) =>
-      SessionEvent(kind: SessionEventKind.success, message: msg, id: DateTime.now().millisecondsSinceEpoch);
-
-  static SessionEvent error(String msg) =>
-      SessionEvent(kind: SessionEventKind.error, message: msg, id: DateTime.now().millisecondsSinceEpoch);
-}
-
-class SessionState {
-  final bool isOpen;
-  final bool isBusy;
-  final String? error;
-
-  // NOWE:
-  final AuthInput? auth;
-  final Map<String, dynamic>? user; // na razie Map – później zrobimy model
-  final ActiveSession? active;
-
-  // NOWE: eventy do snackbarów
-  final SessionEvent? event;
-
-  const SessionState({
-    required this.isOpen,
-    required this.isBusy,
-    required this.error,
-    required this.auth,
-    required this.user,
-    required this.active,
-    required this.event,
-  });
-
-  SessionState copyWith({
-    bool? isOpen,
-    bool? isBusy,
-    String? error,
-    AuthInput? auth,
-    Map<String, dynamic>? user,
-    ActiveSession? active,
-    SessionEvent? event,
-  }) {
-    return SessionState(
-      isOpen: isOpen ?? this.isOpen,
-      isBusy: isBusy ?? this.isBusy,
-      error: error,
-      auth: auth ?? this.auth,
-      user: user ?? this.user,
-      active: active,
-      event: event,
-    );
-  }
-
-  static const closed = SessionState(
-    isOpen: false,
-    isBusy: false,
-    error: null,
-    auth: null,
-    user: null,
-    active: null,
-    event: null,
-  );
-}
+import 'session_event.dart';
+import 'session_state.dart';
 
 final sessionControllerProvider =
 StateNotifierProvider<SessionController, SessionState>((ref) {
@@ -90,17 +19,10 @@ class SessionController extends StateNotifier<SessionState> {
   final Ref _ref;
   DeviceApi get _api => _ref.read(deviceApiProvider);
 
-  /// GŁÓWNE WEJŚCIE: PIN/QR/RFID → zawsze 2 requesty:
-  /// 1) getUser
-  /// 2) getActiveWithStatus
   Future<void> openFromAuth(AuthInput auth) async {
     if (state.isBusy) return;
 
-    state = state.copyWith(
-      isBusy: true,
-      error: null,
-      event: null,
-    );
+    state = state.copyWith(isBusy: true, error: null, event: null);
 
     try {
       final user = await _api.getUser(
@@ -131,7 +53,6 @@ class SessionController extends StateNotifier<SessionState> {
       if (res.status == 200 && res.body != null && res.body!.isNotEmpty) {
         active = ActiveSession.fromJson(res.body!);
       } else {
-        // 204 albo 200 + {} → traktujemy jako "brak aktywnej zmiany"
         active = null;
       }
 
@@ -155,9 +76,7 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
-  void close() {
-    state = SessionState.closed;
-  }
+  void close() => state = SessionState.closed;
 
   Future<void> refresh() async {
     final auth = state.auth;
@@ -180,7 +99,6 @@ class SessionController extends StateNotifier<SessionState> {
       active = null;
     }
 
-    // UWAGA: nie zamykamy modala – tylko aktualizujemy stan
     state = state.copyWith(isBusy: false, active: active, error: null, event: null);
   }
 
@@ -196,10 +114,7 @@ class SessionController extends StateNotifier<SessionState> {
   Future<void> startShiftWithContract(int contractId) async {
     final userId = _userId;
     if (userId == null) {
-      state = state.copyWith(
-        error: 'Brak userId',
-        event: SessionEvent.error('Brak userId'),
-      );
+      state = state.copyWith(error: 'Brak userId', event: SessionEvent.error('Brak userId'));
       return;
     }
 
@@ -209,6 +124,7 @@ class SessionController extends StateNotifier<SessionState> {
       await refresh();
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Zmiana rozpoczęta'));
+      backToPin();
     } catch (_) {
       if (!mounted) return;
       state = state.copyWith(
@@ -229,6 +145,7 @@ class SessionController extends StateNotifier<SessionState> {
       await refresh();
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Zmiana zakończona'));
+      backToPin();
     } catch (_) {
       if (!mounted) return;
       state = state.copyWith(
@@ -249,6 +166,7 @@ class SessionController extends StateNotifier<SessionState> {
       await refresh();
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Przerwa rozpoczęta'));
+      backToPin();
     } catch (_) {
       if (!mounted) return;
       state = state.copyWith(
@@ -269,6 +187,7 @@ class SessionController extends StateNotifier<SessionState> {
       await refresh();
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Przerwa zakończona'));
+      backToPin();
     } catch (_) {
       if (!mounted) return;
       state = state.copyWith(
@@ -277,5 +196,10 @@ class SessionController extends StateNotifier<SessionState> {
         event: SessionEvent.error('Nie udało się zakończyć przerwy'),
       );
     }
+  }
+
+  void backToPin() {
+    _ref.read(inputCoordinatorProvider.notifier).showPin();
+    close();
   }
 }

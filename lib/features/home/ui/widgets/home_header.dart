@@ -18,9 +18,12 @@ class HomeHeader extends StatelessWidget {
         InkWell(
           onTap: () => context.push('/admin'),
           borderRadius: BorderRadius.circular(12 * scale),
-          child: Padding(
-            padding: EdgeInsets.all(6 * scale),
-            child: Icon(Icons.timelapse, size: 48 * scale),
+          child: SizedBox(
+            width: 72,
+            height: 72,
+            child: Center(
+              child: Image.asset('assets/images/timelog.png', height: 56),
+            ),
           ),
         ),
         const Spacer(),

@@ -56,7 +56,7 @@ class DeviceApi {
   }) async {
     try {
       // ignore: avoid_print
-      print('DeviceApi.getActiveWithStatus: rawToken="${_maskToken(_deviceToken)}"');
+      print('DeviceApi.getActiveWithStatus: rawToken="${_deviceToken}"');
       final qp = _buildQuery(pin: pin, qrCode: qrCode, nfcTag: nfcTag);
 
       // DEBUG: pokaż query bez pełnego tokena
