@@ -31,33 +31,34 @@ class SessionActions extends ConsumerWidget {
         bg: shiftStartGreen,
         onTap: () async {
           final sessionCtrl = ref.read(sessionControllerProvider.notifier);
+          final inputCtrl = ref.read(inputCoordinatorProvider.notifier);
 
-          // SessionModal ma stać na 5 i czekać pod pickerem
           sessionCtrl.pauseUiAutoClose(true);
 
-          final contractId = await showContractPicker(
-            context,
-            user,
-            timeout: const Duration(seconds: 5),
-            onTimeout: () {
-              // timeout = zamykamy session modal i wracamy do PIN
-              ref.read(sessionControllerProvider.notifier).close();
-              ref.read(inputCoordinatorProvider.notifier).showPin();
-            },
-            onActivity: () {
-              // dotyk w pickerze bumpuje idle
-              ref.read(inputCoordinatorProvider.notifier).bumpIdle();
-            },
-          );
+          try {
+            final contractId = await showContractPicker(
+              context,
+              user,
+              timeout: const Duration(seconds: 5),
+              onTimeout: () {
+                sessionCtrl.close();
+                inputCtrl.showPin();
+              },
+              onActivity: inputCtrl.bumpIdle,
+            );
 
-          // Jeśli sesja nadal otwarta, wracamy do SessionModal i odliczamy 5→0
-          if (ref.read(sessionControllerProvider).isOpen) {
-            sessionCtrl.pauseUiAutoClose(false);
+            if (ref.read(sessionControllerProvider).isOpen) {
+              sessionCtrl.pauseUiAutoClose(false);
+            }
+
+            if (contractId == null) return;
+            await sessionCtrl.startShiftWithContract(contractId);
+          } finally {
+            // gdyby picker rzucił wyjątek i UI nadal otwarte, nie zostaw pauzy na zawsze
+            if (ref.read(sessionControllerProvider).isOpen) {
+              sessionCtrl.pauseUiAutoClose(false);
+            }
           }
-
-          if (contractId == null) return;
-
-          await sessionCtrl.startShiftWithContract(contractId);
         },
       );
     }

@@ -4,6 +4,8 @@ import 'package:timelogappflutter/features/admin/ui/theme_accent_picker.dart';
 import '../state/admin_controller.dart';
 import '../../home/state/interaction_controller.dart';
 import '../../home/state/interaction_state.dart';
+import '../widgets/wakelock_toogle.dart';
+import '../widgets/kiosk_toogle.dart';
 
 
 class AdminScreen extends ConsumerStatefulWidget {
@@ -74,6 +76,17 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
+
+              const SizedBox(height: 8),
+              const KioskToggle(),
+
+              const Divider(height: 32),
+
+              const SizedBox(height: 8),
+              const WakelockToggle(),
+
+              const Divider(height: 32),
+
               const Text('Token urządzenia'),
               const SizedBox(height: 8),
               TextField(
