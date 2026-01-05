@@ -25,6 +25,30 @@ class _SessionShellState extends ConsumerState<SessionShell>
   late final AnimationController _autoCloseCtrl;
 
   @override
+  void didUpdateWidget(covariant SessionShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Pauza/wznowienie
+    if (widget.session.uiPaused != oldWidget.session.uiPaused) {
+      if (widget.session.uiPaused) {
+        // ✅ wymaganie: reset do 5 i czekaj (nie odliczaj)
+        _autoCloseCtrl.stop();
+        _autoCloseCtrl.value = 1.0; // pełny pasek
+      } else {
+        // ✅ wróciliśmy z pickera -> odliczaj od 5 w dół
+        _restartAutoClose();
+      }
+    }
+
+    // Restart paska (tylko jeśli nie pauzujemy)
+    if (!widget.session.uiPaused &&
+        widget.session.uiBump != oldWidget.session.uiBump) {
+      _restartAutoClose();
+    }
+  }
+
+
+  @override
   void initState() {
     super.initState();
 
@@ -59,12 +83,6 @@ class _SessionShellState extends ConsumerState<SessionShell>
   }
 
   void _restartAutoClose() {
-    // pasek od nowa: 1.0 -> 0.0 w 5s
-    if (!_autoCloseCtrl.isAnimating) {
-      _autoCloseCtrl.value = 1.0;
-      _autoCloseCtrl.reverse(from: 1.0);
-      return;
-    }
     _autoCloseCtrl.stop();
     _autoCloseCtrl.value = 1.0;
     _autoCloseCtrl.reverse(from: 1.0);
@@ -86,8 +104,8 @@ class _SessionShellState extends ConsumerState<SessionShell>
 
     return Listener(
       behavior: HitTestBehavior.translucent,
-      onPointerDown: (_) => _restartAutoClose(), // ✅ każde dotknięcie resetuje
-      onPointerMove: (_) => _restartAutoClose(), // ✅ przeciągnięcia też
+      onPointerDown: (_) { if (!widget.session.uiPaused) _restartAutoClose(); },
+      onPointerMove: (_) { if (!widget.session.uiPaused) _restartAutoClose(); },
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),

@@ -1,6 +1,7 @@
+import 'package:timelogappflutter/features/session/state/session_event.dart';
+
 import '../model/active_session.dart';
 import '../model/auth_input.dart';
-import 'session_event.dart';
 
 class SessionState {
   final bool isOpen;
@@ -8,10 +9,14 @@ class SessionState {
   final String? error;
 
   final AuthInput? auth;
-  final Map<String, dynamic>? user; // później model
+  final Map<String, dynamic>? user;
   final ActiveSession? active;
 
   final SessionEvent? event;
+
+
+  final bool uiPaused;
+  final int uiBump;
 
   const SessionState({
     required this.isOpen,
@@ -21,6 +26,8 @@ class SessionState {
     required this.user,
     required this.active,
     required this.event,
+    required this.uiBump,
+    required this.uiPaused,
   });
 
   SessionState copyWith({
@@ -31,6 +38,8 @@ class SessionState {
     Map<String, dynamic>? user,
     ActiveSession? active,
     SessionEvent? event,
+    bool? uiPaused,
+    int? uiBump,
   }) {
     return SessionState(
       isOpen: isOpen ?? this.isOpen,
@@ -40,6 +49,8 @@ class SessionState {
       user: user ?? this.user,
       active: active,
       event: event,
+      uiPaused: uiPaused ?? this.uiPaused,
+      uiBump: uiBump ?? this.uiBump,
     );
   }
 
@@ -51,5 +62,7 @@ class SessionState {
     user: null,
     active: null,
     event: null,
+    uiPaused: false,
+    uiBump: 0,
   );
 }

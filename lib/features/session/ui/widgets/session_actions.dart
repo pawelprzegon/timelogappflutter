@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../home/state/input_coordinator.dart';
 import '../../model/active_session.dart';
 import '../../state/session_controller.dart';
 import 'session_contract_picker.dart';
@@ -29,9 +30,34 @@ class SessionActions extends ConsumerWidget {
         icon: Icons.play_arrow_rounded,
         bg: shiftStartGreen,
         onTap: () async {
-          final contractId = await showContractPicker(context, user);
+          final sessionCtrl = ref.read(sessionControllerProvider.notifier);
+
+          // SessionModal ma stać na 5 i czekać pod pickerem
+          sessionCtrl.pauseUiAutoClose(true);
+
+          final contractId = await showContractPicker(
+            context,
+            user,
+            timeout: const Duration(seconds: 5),
+            onTimeout: () {
+              // timeout = zamykamy session modal i wracamy do PIN
+              ref.read(sessionControllerProvider.notifier).close();
+              ref.read(inputCoordinatorProvider.notifier).showPin();
+            },
+            onActivity: () {
+              // dotyk w pickerze bumpuje idle
+              ref.read(inputCoordinatorProvider.notifier).bumpIdle();
+            },
+          );
+
+          // Jeśli sesja nadal otwarta, wracamy do SessionModal i odliczamy 5→0
+          if (ref.read(sessionControllerProvider).isOpen) {
+            sessionCtrl.pauseUiAutoClose(false);
+          }
+
           if (contractId == null) return;
-          await ref.read(sessionControllerProvider.notifier).startShiftWithContract(contractId);
+
+          await sessionCtrl.startShiftWithContract(contractId);
         },
       );
     }
