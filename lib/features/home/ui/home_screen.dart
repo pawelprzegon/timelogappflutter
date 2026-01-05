@@ -92,6 +92,7 @@ class HomeScreen extends ConsumerWidget {
         onPointerDown: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
         onPointerMove: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
         child: SafeArea(
+          top: false,
           child: Stack(
             children: [
               // 1) GŁÓWNY UI (zawsze renderujemy)
@@ -103,12 +104,12 @@ class HomeScreen extends ConsumerWidget {
                       maxWidth: Responsive.maxContentWidth(context),
                     ),
                     child: Padding(
-                      padding: EdgeInsets.all(14 * scale),
+                      padding: EdgeInsets.symmetric(vertical: 6 * scale, horizontal: 14 * scale),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           HomeHeader(timeText: timeText, scale: scale),
-                          SizedBox(height: 14 * scale),
+                          SizedBox(height: 4 * scale),
 
                           ModeToggle(isEnabled: !offline && !session.isOpen && !tokenMissing),
                           SizedBox(height: 10 * scale),

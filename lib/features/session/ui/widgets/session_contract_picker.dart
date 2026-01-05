@@ -14,8 +14,17 @@ Future<int?> showContractPicker(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: const Color(0xFF0B1220),
-    // ważne: NIE używaj useRootNavigator:true tutaj
+    // ✅ tło sheeta z theme
+    backgroundColor: Theme.of(context).colorScheme.surface,
+
+    // ✅ przydymienie tła
+    barrierColor: Colors.black87,
+
+    // ✅ zaokrąglenie
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+
     builder: (ctx) => _ContractPickerSheet(
       contracts: contracts,
       timeout: timeout,
