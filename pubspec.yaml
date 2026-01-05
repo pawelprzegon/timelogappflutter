@@ -34,7 +34,7 @@ dependencies:
   go_router: ^14.2.7
   dio: ^5.7.0
   shared_preferences: ^2.3.2
-
+  geolocator: ^13.0.2
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
 
@@ -114,7 +114,6 @@ flutter:
 flutter_native_splash:
   color: "#0B0F14"
   image: assets/images/timelog.png
-  android_scale_type: fitCenter
   android: true
   ios: true
   android_gravity: center

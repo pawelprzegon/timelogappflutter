@@ -1,11 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:timelogappflutter/core/config/env.dart';
 
-final dioProvider = Provider<Dio>((ref) {
+final openWeatherDioProvider = Provider<Dio>((ref) {
   return Dio(
     BaseOptions(
-      baseUrl: Env.apiBaseUrl,
+      baseUrl: 'https://api.openweathermap.org/data/3.0',
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
     ),

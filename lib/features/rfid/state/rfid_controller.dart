@@ -5,11 +5,20 @@ import '../../session/model/auth_input.dart';
 import '../../session/state/session_controller.dart';
 
 class RfidState {
+  final bool isConnected;
   final bool isSubmitting;
-  const RfidState({required this.isSubmitting});
-  static const initial = RfidState(isSubmitting: false);
-  RfidState copyWith({bool? isSubmitting}) =>
-      RfidState(isSubmitting: isSubmitting ?? this.isSubmitting);
+  const RfidState({required this.isConnected, required this.isSubmitting});
+
+  static const initial = RfidState(isConnected: false, isSubmitting: false);
+
+  RfidState copyWith({
+    bool? isConnected,
+    bool? isSubmitting
+  }) =>
+      RfidState(
+          isConnected: isConnected ?? this.isConnected,
+          isSubmitting: isSubmitting ?? this.isSubmitting
+      );
 }
 
 final rfidControllerProvider =
@@ -24,6 +33,12 @@ class RfidController extends StateNotifier<RfidState> {
 
   String? _lastUid;
   DateTime? _lastAt;
+
+  void setConnected(bool v) {
+    if (!mounted) return;
+    if (state.isConnected == v) return;
+    state = state.copyWith(isConnected: v);
+  }
 
   Future<void> handleUid(String uid) async {
     // anty-spam

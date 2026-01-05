@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:timelogappflutter/features/device/ui/device_widget.dart';
+
+import '../../../weather/ui/weather_widget.dart';
 
 class HomeFooter extends StatelessWidget {
   const HomeFooter({
@@ -14,10 +17,11 @@ class HomeFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(weatherText, style: const TextStyle(color: Color(0xFF94A3B8))),
-        const Spacer(),
-        Text(deviceText, style: const TextStyle(color: Color(0xFF94A3B8))),
+        Expanded(child: WeatherCard()),  // lewa strona zajmuje resztę
+        const Spacer(),                  // wypycha na prawo
+        DeviceCard(),                    // mały, przy prawej
       ],
     );
   }
 }
+
