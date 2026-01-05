@@ -17,7 +17,7 @@ class PinPane extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _PinDots(filled: state.pin.length, total: kPinLength),
-        const SizedBox(height: 16),
+        const SizedBox(height: 36),
 
         if (state.isSubmitting) ...[
           const CircularProgressIndicator(),
@@ -140,7 +140,7 @@ class _Keypad extends StatelessWidget {
         onPressed: disabled ? null : () => onDigit(digit),
         child: Text(
           '$digit',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -156,7 +156,7 @@ class _Keypad extends StatelessWidget {
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: Icon(icon),
-        label: Text(label),
+        label: Text(label, style: TextStyle(fontSize: 20),),
       ),
     );
   }

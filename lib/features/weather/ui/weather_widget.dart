@@ -18,6 +18,7 @@ class WeatherCard extends ConsumerWidget {
     return Card(
       elevation: 1,
       color: Colors.transparent,
+      shadowColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(4),
@@ -106,7 +107,7 @@ class _Content extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
+            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
