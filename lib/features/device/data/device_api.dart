@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../../logging/logger.dart';
+
 String _maskToken(String t) {
   final v = t.trim();
   if (v.isEmpty) return '<EMPTY>';
@@ -93,12 +95,13 @@ class DeviceApi {
     }
   }
 
-  /// GET /api/device/user?... (jeśli będziesz potrzebował)
+  /// GET /api/device/user?...
   Future<Map<String, dynamic>?> getUser({
     int? pin,
     String? qrCode,
     String? nfcTag,
   }) async {
+
     final res = await _dio.get(
       '$_basePath/user',
       queryParameters: _buildQuery(pin: pin, qrCode: qrCode, nfcTag: nfcTag),
@@ -106,14 +109,18 @@ class DeviceApi {
     );
 
     final code = res.statusCode ?? 0;
+
     if (code == 204) return null;
+
     if (code >= 200 && code < 300 && res.data is Map<String, dynamic>) {
       return res.data as Map<String, dynamic>;
     }
+
     throw DioException(
       requestOptions: res.requestOptions,
       response: res,
       type: DioExceptionType.badResponse,
+      message: 'Serwer zwrócił błąd: $code',
     );
   }
 

@@ -6,6 +6,7 @@ import '../../../core/ui/responsive.dart';
 import '../../admin/state/admin_controller.dart';
 import '../../qr/ui/qr_pane.dart';
 import '../../rfid/state/rfid_bootstrap.dart';
+import '../../session/ui/widgets/session_snackbar_listener.dart';
 import '../state/clock_controller.dart';
 import '../state/connectivity_controller.dart';
 import '../state/input_coordinator.dart';
@@ -85,110 +86,112 @@ class HomeScreen extends ConsumerWidget {
     // - brakuje tokena (wymuszenie konfiguracji)
     final blockUi = session.isOpen || tokenMissing;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B0F14),
-      body: Listener(
-        behavior: HitTestBehavior.translucent,
-        onPointerDown: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
-        onPointerMove: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
-        child: SafeArea(
-          top: false,
-          child: Stack(
-            children: [
-              // 1) GŁÓWNY UI (zawsze renderujemy)
-              AbsorbPointer(
-                absorbing: blockUi,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: Responsive.maxContentWidth(context),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 6 * scale, horizontal: 14 * scale),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          HomeHeader(timeText: timeText, scale: scale),
-                          SizedBox(height: 4 * scale),
-
-                          ModeToggle(isEnabled: !offline && !session.isOpen && !tokenMissing),
-                          SizedBox(height: 10 * scale),
-
-                          if (offline) ...[
-                            OfflineBanner(customText: admin.offlineMessage),
-                            SizedBox(height: 10 * scale),
-                          ],
-
-                          Expanded(child: modePane()),
-
-                          const HomeFooter(
-                            weatherText: 'Pogoda...',
-                            deviceText: 'Urządzenie...',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // 2) OVERLAY: BRAK TOKENA
-              if (tokenMissing) ...[
-                const Positioned.fill(
-                  child: ModalBarrier(dismissible: false, color: Colors.black54),
-                ),
-                Positioned.fill(
+    return SessionListener(
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0B0F14),
+        body: Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
+          onPointerMove: (_) => ref.read(inputCoordinatorProvider.notifier).bumpIdle(),
+          child: SafeArea(
+            top: false,
+            child: Stack(
+              children: [
+                // 1) GŁÓWNY UI (zawsze renderujemy)
+                AbsorbPointer(
+                  absorbing: blockUi,
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 520),
-                      child: Card(
-                        elevation: 8,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.warning_amber_rounded, size: 44),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'Brak tokena urządzenia',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Aby uruchomić kiosk, wejdź do panelu Admin i wklej token.',
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 14),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ElevatedButton.icon(
-                                    onPressed: () => context.push('/admin'),
-                                    icon: const Icon(Icons.admin_panel_settings),
-                                    label: const Text('Otwórz Admin'),
-                                  ),
-                                ],
-                              ),
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.maxContentWidth(context),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6 * scale, horizontal: 14 * scale),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            HomeHeader(timeText: timeText, scale: scale),
+                            SizedBox(height: 4 * scale),
+      
+                            ModeToggle(isEnabled: !offline && !session.isOpen && !tokenMissing),
+                            SizedBox(height: 10 * scale),
+      
+                            if (offline) ...[
+                              OfflineBanner(customText: admin.offlineMessage),
+                              SizedBox(height: 10 * scale),
                             ],
-                          ),
+      
+                            Expanded(child: modePane()),
+      
+                            const HomeFooter(
+                              weatherText: 'Pogoda...',
+                              deviceText: 'Urządzenie...',
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
+      
+                // 2) OVERLAY: BRAK TOKENA
+                if (tokenMissing) ...[
+                  const Positioned.fill(
+                    child: ModalBarrier(dismissible: false, color: Colors.black54),
+                  ),
+                  Positioned.fill(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 520),
+                        child: Card(
+                          elevation: 8,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.warning_amber_rounded, size: 44),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Brak tokena urządzenia',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Aby uruchomić kiosk, wejdź do panelu Admin i wklej token.',
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 14),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: () => context.push('/admin'),
+                                      icon: const Icon(Icons.admin_panel_settings),
+                                      label: const Text('Otwórz Admin'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+      
+                // 3) OVERLAY: SESJA
+                if (session.isOpen) ...[
+                  const Positioned.fill(
+                    child: ModalBarrier(dismissible: false, color: Colors.black54),
+                  ),
+                  const Positioned.fill(
+                    child: SessionModal(),
+                  ),
+                ],
               ],
-
-              // 3) OVERLAY: SESJA
-              if (session.isOpen) ...[
-                const Positioned.fill(
-                  child: ModalBarrier(dismissible: false, color: Colors.black54),
-                ),
-                const Positioned.fill(
-                  child: SessionModal(),
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),

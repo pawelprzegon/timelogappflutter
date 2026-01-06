@@ -46,6 +46,8 @@ dependencies:
   mobile_scanner: ^7.1.4
   kiosk_mode: ^0.8.0
   wakelock_plus: ^1.4.0
+  talker_flutter: ^5.1.9
+  talker_dio_logger: ^5.1.9
 
 
 dev_dependencies:

@@ -12,8 +12,6 @@ class SessionModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionControllerProvider);
 
-    return SessionSnackbarListener(
-      child: SessionShell(session: session),
-    );
+    return SessionShell(session: session);
   }
 }

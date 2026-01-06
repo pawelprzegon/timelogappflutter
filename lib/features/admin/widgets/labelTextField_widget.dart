@@ -44,8 +44,8 @@ class LabeltextfieldWidget extends ConsumerWidget {
           Text(
             label,
             style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w300,
+              color: theme.colorScheme.onSurface.withAlpha(150),
             ),
           ),
 
@@ -65,7 +65,7 @@ class LabeltextfieldWidget extends ConsumerWidget {
               // Wypełnienie tła (opcjonalnie, dla lepszej widoczności)
               filled: true,
               fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             ),
           ),
         ],

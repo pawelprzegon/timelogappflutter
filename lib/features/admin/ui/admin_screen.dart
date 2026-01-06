@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:timelogappflutter/features/admin/widgets/labelTextField_widget.dart';
 import 'package:timelogappflutter/features/admin/widgets/theme_accent_picker.dart';
 import '../state/admin_controller.dart';
@@ -72,60 +73,105 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Admin')),
+        appBar: AppBar(
+          title: const Text('Admin'),
+          actions: [
+            Text('Logs'),
+            IconButton(
+                onPressed: () => context.push('/logger'),
+                icon: Icon(Icons.history)
+            )
+          ],
+        ),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
 
-              const SizedBox(height: 8),
-              const KioskToggle(),
-
-              const Divider(height: 12),
-
-              const SizedBox(height: 8),
-              const WakelockToggle(),
-
-              const Divider(height: 12),
-              LabeltextfieldWidget(
-                label: 'Token urządzenia',
-                controller: _tokenCtrl,
-                hintText: 'Wklej token...',
-                onChanged: ctrl.setTokenLocal,
+              Card(
+                margin: EdgeInsets.all(5.0),
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: const KioskToggle(),
+                ),
               ),
 
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () async {
-                  await ctrl.saveToken();
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Token zapisany')),
-                  );
-                },
-                child: const Text('Zapisz token'),
-              ),
-      
-              const Divider(height: 12),
 
-              LabeltextfieldWidget(
-                label: 'Komunikat offline',
-                controller: _offlineCtrl,
-                TextInputMinLines: 2,
-                TextInputMaxLines: 4,
-                hintText: 'Tekst wyświetlany, gdy brak połączenia...',
-                onChanged: ctrl.setOfflineLocal,
+              Card(
+                margin: EdgeInsets.all(5.0),
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: const WakelockToggle(),
+                )
               ),
 
-              ElevatedButton(
-                onPressed: () async {
-                  await ctrl.saveOfflineMessage();
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Komunikat offline zapisany')),
-                  );
-                },
-                child: const Text('Zapisz komunikat offline'),
+              Card(
+                margin: EdgeInsets.all(5.0),
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Column(
+                    spacing: 10,
+                    children: [
+                      LabeltextfieldWidget(
+                        label: 'Token urządzenia',
+                        controller: _tokenCtrl,
+                        hintText: 'Wklej token...',
+                        onChanged: ctrl.setTokenLocal,
+                      ),
+
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: () async {
+                          await ctrl.saveToken();
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Token zapisany')),
+                          );
+                        },
+                        child: const Text('Zapisz token'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              Card(
+                margin: EdgeInsets.all(5.0),
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Column(
+                    spacing: 10,
+                    children: [
+                      LabeltextfieldWidget(
+                        label: 'Komunikat offline',
+                        controller: _offlineCtrl,
+                        TextInputMinLines: 2,
+                        TextInputMaxLines: 4,
+                        hintText: 'Tekst wyświetlany, gdy brak połączenia...',
+                        onChanged: ctrl.setOfflineLocal,
+                      ),
+
+
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: () async {
+                          await ctrl.saveOfflineMessage();
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Komunikat offline zapisany')),
+                          );
+                        },
+                        child: const Text('Zapisz komunikat offline'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
 
             ],

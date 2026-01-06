@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
+import '../../features/logging/logger.dart';
 import 'system_ui.dart';
 
 class ImmersiveGuard extends StatefulWidget {
@@ -52,5 +53,12 @@ class _ImmersiveGuardState extends State<ImmersiveGuard> with WidgetsBindingObse
       onPointerUp: (_) => _rehide(),
       child: widget.child,
     );
+  }
+}
+
+class AppLifecycleLogger with WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    talker.info('Lifecycle: $state');
   }
 }

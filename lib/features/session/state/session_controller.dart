@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timelogappflutter/features/session/state/session_error_handler.dart';
 
 import '../../device/data/device_api.dart';
 import '../../device/data/device_providers.dart';
 import '../../home/state/input_coordinator.dart';
+import '../../logging/state/talker_provider.dart';
 import '../model/active_session.dart';
 import '../model/auth_input.dart';
 import 'session_event.dart';
@@ -27,12 +29,15 @@ class SessionController extends StateNotifier<SessionState> {
     state = state.copyWith(uiPaused: paused);
   }
 
+  late final errorHandler = SessionErrorHandler(_ref.read(talkerProvider));
+
   Future<void> openFromAuth(AuthInput auth) async {
     if (state.isBusy) return;
 
     state = state.copyWith(isBusy: true, error: null, event: null);
 
     try {
+
       final user = await _api.getUser(
         pin: auth.pin,
         qrCode: auth.qrCode,
@@ -73,13 +78,16 @@ class SessionController extends StateNotifier<SessionState> {
         active: active,
         event: null,
       );
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+
+      final userMessage = errorHandler.handle(e, 'openFromAuth');
+
       state = state.copyWith(
         isOpen: false,
         isBusy: false,
-        error: 'Błąd połączenia z serwerem',
-        event: SessionEvent.error('Błąd połączenia z serwerem'),
+        error: userMessage,
+        event: SessionEvent.error(userMessage),
       );
     }
   }
@@ -133,12 +141,16 @@ class SessionController extends StateNotifier<SessionState> {
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Zmiana rozpoczęta'));
       backToPin();
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+
+      final userMessage = errorHandler.handle(e, 'openFromAuth');
+
       state = state.copyWith(
+        isOpen: false,
         isBusy: false,
-        error: 'Nie udało się rozpocząć zmiany',
-        event: SessionEvent.error('Nie udało się rozpocząć zmiany'),
+        error: "Nie udało się rozpoczać zmiany: " + userMessage,
+        event: SessionEvent.error("Nie udało się rozpoczać zmiany: " + userMessage),
       );
     }
   }
@@ -154,12 +166,16 @@ class SessionController extends StateNotifier<SessionState> {
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Zmiana zakończona'));
       backToPin();
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+
+      final userMessage = errorHandler.handle(e, 'openFromAuth');
+
       state = state.copyWith(
+        isOpen: false,
         isBusy: false,
-        error: 'Nie udało się zakończyć zmiany',
-        event: SessionEvent.error('Nie udało się zakończyć zmiany'),
+        error: "Nie udało się zakończyć zmiany: " + userMessage,
+        event: SessionEvent.error("Nie udało się zakończyć zmiany: " + userMessage),
       );
     }
   }
@@ -175,12 +191,17 @@ class SessionController extends StateNotifier<SessionState> {
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Przerwa rozpoczęta'));
       backToPin();
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+
+      final userMessage = errorHandler.handle(e, 'openFromAuth');
+
       state = state.copyWith(
+        isOpen: false,
         isBusy: false,
-        error: 'Nie udało się rozpocząć przerwy',
-        event: SessionEvent.error('Nie udało się rozpocząć przerwy'),
+        error: "Nie udało się rozpoczać przerwy: " + userMessage,
+        event: SessionEvent.error(
+            "Nie udało się rozpoczać przerwy: " + userMessage),
       );
     }
   }
@@ -196,12 +217,17 @@ class SessionController extends StateNotifier<SessionState> {
       if (!mounted) return;
       state = state.copyWith(event: SessionEvent.success('Przerwa zakończona'));
       backToPin();
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+
+      final userMessage = errorHandler.handle(e, 'openFromAuth');
+
       state = state.copyWith(
+        isOpen: false,
         isBusy: false,
-        error: 'Nie udało się zakończyć przerwy',
-        event: SessionEvent.error('Nie udało się zakończyć przerwy'),
+        error: "Nie udało się zakończyć przerwy: " + userMessage,
+        event: SessionEvent.error(
+            "Nie udało się zakończyć przerwy: " + userMessage),
       );
     }
   }

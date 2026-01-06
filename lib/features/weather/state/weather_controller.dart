@@ -35,6 +35,7 @@ String openWeatherIconUrl(String icon, {int scale = 1}) {
     return 'https://openweathermap.org/img/wn/$icon.png';
   }
   // Dla skali 2 lub większej używamy formatu @2x, @4x itd.
+  print(icon);
   return 'https://openweathermap.org/img/wn/$icon@${scale}x.png';
 }
 

@@ -50,7 +50,7 @@ class PinController extends StateNotifier<PinState> {
     state = state.copyWith(pin: next, error: null);
 
     if (next.length == kPinLength) {
-      submit(); // celowo bez await — UI nie ma się “zawieszać”
+      submit();
     }
   }
 
