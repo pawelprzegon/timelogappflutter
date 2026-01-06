@@ -20,7 +20,7 @@ class AccentPicker extends ConsumerWidget {
     ];
 
     return Wrap(
-      spacing: 12,
+      spacing: 10,
       children: [
         for (final c in colors)
           InkWell(

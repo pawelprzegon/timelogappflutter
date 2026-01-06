@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:timelogappflutter/features/admin/ui/theme_accent_picker.dart';
+import 'package:timelogappflutter/features/admin/widgets/labelTextField_widget.dart';
+import 'package:timelogappflutter/features/admin/widgets/theme_accent_picker.dart';
 import '../state/admin_controller.dart';
 import '../../home/state/interaction_controller.dart';
 import '../../home/state/interaction_state.dart';
@@ -80,23 +81,19 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
               const SizedBox(height: 8),
               const KioskToggle(),
 
-              const Divider(height: 32),
+              const Divider(height: 12),
 
               const SizedBox(height: 8),
               const WakelockToggle(),
 
-              const Divider(height: 32),
-
-              const Text('Token urządzenia'),
-              const SizedBox(height: 8),
-              TextField(
+              const Divider(height: 12),
+              LabeltextfieldWidget(
+                label: 'Token urządzenia',
                 controller: _tokenCtrl,
+                hintText: 'Wklej token...',
                 onChanged: ctrl.setTokenLocal,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Wklej token...',
-                ),
               ),
+
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () async {
@@ -109,21 +106,17 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                 child: const Text('Zapisz token'),
               ),
       
-              const Divider(height: 32),
-      
-              const Text('Komunikat offline'),
-              const SizedBox(height: 8),
-              TextField(
+              const Divider(height: 12),
+
+              LabeltextfieldWidget(
+                label: 'Komunikat offline',
                 controller: _offlineCtrl,
-                minLines: 2,
-                maxLines: 4,
+                TextInputMinLines: 2,
+                TextInputMaxLines: 4,
+                hintText: 'Tekst wyświetlany, gdy brak połączenia...',
                 onChanged: ctrl.setOfflineLocal,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Tekst wyświetlany, gdy brak połączenia...',
-                ),
               ),
-              const SizedBox(height: 8),
+
               ElevatedButton(
                 onPressed: () async {
                   await ctrl.saveOfflineMessage();
@@ -134,10 +127,14 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                 },
                 child: const Text('Zapisz komunikat offline'),
               ),
-      
-              const AccentPicker(),
+
             ],
           ),
+        ),
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.all(12),
+          color: Colors.blueGrey.withValues(alpha: 0.1),
+          child: const AccentPicker(),
         ),
       ),
     );
