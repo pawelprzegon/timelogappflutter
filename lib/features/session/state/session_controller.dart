@@ -19,6 +19,14 @@ class SessionController extends StateNotifier<SessionState> {
   final Ref _ref;
   DeviceApi get _api => _ref.read(deviceApiProvider);
 
+  void bumpUiAutoClose() {
+    state = state.copyWith(uiBump: state.uiBump + 1);
+  }
+
+  void pauseUiAutoClose(bool paused) {
+    state = state.copyWith(uiPaused: paused);
+  }
+
   Future<void> openFromAuth(AuthInput auth) async {
     if (state.isBusy) return;
 

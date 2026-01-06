@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 enum DeviceSize { phone, tablet, desktop }
@@ -19,5 +20,25 @@ class Responsive {
   static double maxContentWidth(BuildContext context) {
     final w = MediaQuery.sizeOf(context).width;
     return min(w, 1600);
+  }
+
+  static void setSupportedOrientations(BuildContext context) {
+    final size = deviceSize(context);
+
+    if (size == DeviceSize.phone) {
+      // Dla telefonów pozwalamy tylko na pion
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      // Dla tabletów i desktopów odblokowujemy wszystkie opcje
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    }
   }
 }

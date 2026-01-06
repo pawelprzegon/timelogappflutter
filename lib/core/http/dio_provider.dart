@@ -1,13 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/env.dart';
-import '../../features/admin/state/admin_controller.dart';
 
 final dioProvider = Provider<Dio>((ref) {
-  final token = ref
-      .watch(adminControllerProvider)
-      .token
-      .trim();
 
   final dio = Dio(BaseOptions(
     baseUrl: Env.apiBaseUrl,

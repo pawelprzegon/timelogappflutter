@@ -1,15 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../device/data/device_api.dart';
-import '../../device/data/device_providers.dart';
 import '../../session/state/session_controller.dart';
 import '../../session/model/auth_input.dart';
 
-String _maskToken(String t) {
-  final v = t.trim();
-  if (v.isEmpty) return '<EMPTY>';
-  if (v.length <= 8) return v;
-  return '${v.substring(0, 4)}...${v.substring(v.length - 4)}';
-}
 
 const int kPinLength = 6;
 
@@ -23,8 +15,6 @@ class PinState {
     required this.isSubmitting,
     required this.error,
   });
-
-  static const _unset = Object();
 
   PinState copyWith({
     String? pin,
