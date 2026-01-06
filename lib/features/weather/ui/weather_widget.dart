@@ -117,15 +117,16 @@ class _Content extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+              // color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+              color: theme.colorScheme.primaryContainer.withAlpha(1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
               child: Image.network(
-                openWeatherIconUrl(data.icon, scale: 2),
-                width: 48,
-                height: 48,
-                errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 28),
+                openWeatherIconUrl(data.icon, scale: 4),
+                width: 80,
+                height: 80,
+                errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 80),
               ),
             ),
           ),
