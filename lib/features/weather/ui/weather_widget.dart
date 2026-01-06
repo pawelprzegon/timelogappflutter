@@ -28,7 +28,12 @@ class WeatherCard extends ConsumerWidget {
               ? const _Loading()
               : (s.data == null || s.weatherStatus == false)
               ? _Error(message: s.error)
-              : _Content(data: s.data!, lastCheck: s.lastCheck, theme: theme),
+              : _Content(
+                  data: s.data!,
+                  lastCheck: s.lastCheck,
+                  theme: theme,
+                  daily: s.daily,
+              ),
         ),
       ),
     );
@@ -80,11 +85,18 @@ class _Content extends StatelessWidget {
     required this.data,
     required this.lastCheck,
     required this.theme,
+    required this.daily,
   });
 
   final WeatherData data;
   final DateTime? lastCheck;
   final ThemeData theme;
+  final List<DailyForecast> daily;
+
+  String _getWeekday(DateTime date) {
+    final days = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
+    return days[date.weekday - 1];
+  }
 
   String _fmtTime(DateTime? dt) {
     if (dt == null) return '—';
@@ -97,43 +109,88 @@ class _Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final temp = data.tempC.round();
-    final feels = data.feelsLikeC.round();
-
-    return Row(
-      key: const ValueKey('content'),
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Center(
-            child: Image.network(
-              openWeatherIconUrl(data.icon, scale: 2),
-              width: 48,
-              height: 48,
-              errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 28),
+    return IntrinsicHeight(
+      child: Row(
+        key: const ValueKey('weather'),
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: Image.network(
+                openWeatherIconUrl(data.icon, scale: 2),
+                width: 48,
+                height: 48,
+                errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 28),
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('$temp°C', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-              Text(_cap(data.description), maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(
-                'Odcz.: $feels°C • ${_fmtTime(lastCheck)}',
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              ),
-            ],
+          const SizedBox(width: 18),
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('${data.tempC.round()}°C',
+                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                Text(_cap(data.description), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  'Odcz.: ${data.feelsLikeC.round()}°C • ${_fmtTime(lastCheck)}',
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
           ),
+          // SEPARATOREK I LISTA DNI
+          if (daily.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: VerticalDivider(
+                color: theme.colorScheme.secondary, // Sugeruję kolor z motywu zamiast czystej bieli
+                thickness: 1,
+                width: 1, // Szerokość samej kreski w rzędzie
+              ),
+            ),
+      
+            Expanded(
+              flex: 3,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: daily.map((day) => Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _buildDailyItem(day),
+                  )).toList(),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDailyItem(DailyForecast day) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(_getWeekday(day.date), style: theme.textTheme.labelSmall),
+        Image.network(
+          openWeatherIconUrl(day.icon, scale: 1),
+          width: 32,
+          height: 32,
+          errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 16),
         ),
+        Text('${day.tempMax.round()}°',
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text('${day.tempMin.round()}°',
+            style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
       ],
     );
   }

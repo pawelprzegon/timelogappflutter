@@ -22,14 +22,36 @@ class WeatherData {
     required this.windSpeed,
   });
 
+
   @override
   String toString() {
     return 'WeatherData(tempC: $tempC, feelsLikeC: $feelsLikeC, desc: $description, icon: $icon, humidity: $humidity, wind: $windSpeed)';
   }
 }
 
-String openWeatherIconUrl(String icon, {int scale = 2}) {
+String openWeatherIconUrl(String icon, {int scale = 1}) {
+  // Jeśli skala to 1, używamy standardowego formatu bez "@1x"
+  if (scale <= 1) {
+    return 'https://openweathermap.org/img/wn/$icon.png';
+  }
+  // Dla skali 2 lub większej używamy formatu @2x, @4x itd.
   return 'https://openweathermap.org/img/wn/$icon@${scale}x.png';
+}
+
+class DailyForecast {
+  final DateTime date;
+  final double tempMax;
+  final double tempMin;
+  final String description;
+  final String icon;
+
+  DailyForecast({
+    required this.date,
+    required this.tempMax,
+    required this.tempMin,
+    required this.description,
+    required this.icon,
+  });
 }
 
 class WeatherState {
@@ -38,6 +60,7 @@ class WeatherState {
   final bool isChecking;
   final String? error;
   final WeatherData? data;
+  final List<DailyForecast> daily;
 
   const WeatherState({
     required this.weatherStatus,
@@ -45,6 +68,7 @@ class WeatherState {
     required this.isChecking,
     required this.error,
     required this.data,
+    required this.daily,
   });
 
   WeatherState copyWith({
@@ -53,6 +77,7 @@ class WeatherState {
     bool? isChecking,
     String? error,
     WeatherData? data,
+    List<DailyForecast>? daily,
   }) {
     return WeatherState(
       weatherStatus: weatherStatus ?? this.weatherStatus,
@@ -60,6 +85,7 @@ class WeatherState {
       isChecking: isChecking ?? this.isChecking,
       error: error ?? this.error,
       data: data ?? this.data,
+      daily: daily ?? this.daily,
     );
   }
 
@@ -69,6 +95,7 @@ class WeatherState {
     isChecking: false,
     error: null,
     data: null,
+    daily: [],
   );
 }
 
@@ -101,7 +128,7 @@ class WeatherStateController extends StateNotifier<WeatherState> {
         queryParameters: {
           'lat': lat,
           'lon': lon,
-          'exclude': 'minutely,daily',
+          'exclude': 'minutely,hourly',
           'appid': _openWeatherApiKey,
           'units': 'metric',
           'lang': 'pl',
@@ -118,6 +145,7 @@ class WeatherStateController extends StateNotifier<WeatherState> {
           lastCheck: DateTime.now(),
           error: 'HTTP $code',
           data: null,
+          daily: []
         );
         return;
       }
@@ -138,8 +166,19 @@ class WeatherStateController extends StateNotifier<WeatherState> {
         windSpeed: ((current['wind_speed'] as num?) ?? 0).toDouble(),
       );
 
-      // ignore: avoid_print
-      print('Weather OK: $weatherData');
+      final dailyList = (json['daily'] as List?) ?? const [];
+
+      final List<DailyForecast> forecast = dailyList.take(5).map((dayJson) {
+        final dayWeather = (dayJson['weather'] as List).first;
+        return DailyForecast(
+          date: DateTime.fromMillisecondsSinceEpoch((dayJson['dt'] as int) * 1000),
+          tempMax: (dayJson['temp']['max'] as num).toDouble(),
+          tempMin: (dayJson['temp']['min'] as num).toDouble(),
+          description: dayWeather['description'] as String,
+          icon: dayWeather['icon'] as String,
+        );
+      }).toList();
+
 
       state = state.copyWith(
         weatherStatus: true,
@@ -147,6 +186,7 @@ class WeatherStateController extends StateNotifier<WeatherState> {
         isChecking: false,
         error: null,
         data: weatherData,
+        daily: forecast,
       );
     } on DioException catch (e) {
       state = state.copyWith(
@@ -155,6 +195,7 @@ class WeatherStateController extends StateNotifier<WeatherState> {
         lastCheck: DateTime.now(),
         error: e.message ?? 'Dio error',
         data: null,
+        daily: [],
       );
     } catch (e) {
       state = state.copyWith(
@@ -163,6 +204,7 @@ class WeatherStateController extends StateNotifier<WeatherState> {
         lastCheck: DateTime.now(),
         error: e.toString(),
         data: null,
+        daily: [],
       );
     }
   }

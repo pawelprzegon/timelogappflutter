@@ -16,10 +16,15 @@ class HomeFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Expanded(child: WeatherCard()),  // lewa strona zajmuje resztę
-        const Spacer(),                  // wypycha na prawo
-        DeviceCard(),                    // mały, przy prawej
+        Expanded(
+            child: WeatherCard()
+        ),
+        // const Spacer(),
+        Expanded(
+            child: DeviceCard(),
+        ),
       ],
     );
   }

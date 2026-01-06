@@ -20,11 +20,20 @@ class DeviceCard extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-        Text(rfid.isConnected ? 'RFID: podłączony' : 'RFID: odłączony'),
-        Icon(
+            Flexible(
+              child: Text(
+                rfid.isConnected ? 'RFID: podłączony' : 'RFID: odłączony', // Skróciłem tekst, by zyskać miejsce
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
               rfid.isConnected ? Icons.nfc : Icons.error_outlined,
-              size: 20,
+              size: 18,
               color: rfid.isConnected ? Colors.tealAccent : Colors.redAccent,
             ),
           ],
