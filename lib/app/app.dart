@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/ui/responsive.dart';
 import '../features/theme/theme_controller.dart';
 import 'router.dart';
 import '../core/kiosk/immersive_guard.dart';
@@ -11,7 +12,7 @@ class TimeLogApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(appThemeProvider);
-
+    Responsive.setSupportedOrientations(context);
     return ImmersiveGuard(
       child: MaterialApp.router(
         title: 'TimeLog',

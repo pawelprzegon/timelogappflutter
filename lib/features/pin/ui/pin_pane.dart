@@ -16,8 +16,11 @@ class PinPane extends ConsumerWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _PinDots(filled: state.pin.length, total: kPinLength),
-        const SizedBox(height: 36),
+        _PinDots(
+            filled: state.pin.length,
+            total: kPinLength
+        ),
+        const SizedBox(height: 60),
 
         if (state.isSubmitting) ...[
           const CircularProgressIndicator(),
@@ -54,11 +57,12 @@ class _PinDots extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 10,
       children: List.generate(total, (i) {
         final on = i < filled;
         return Container(
-          width: 16,
-          height: 16,
+          width: 20,
+          height: 20,
           margin: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -87,16 +91,17 @@ class _Keypad extends StatelessWidget {
   Widget build(BuildContext context) {
     // 3 kolumny jak klasyczna klawiatura
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 360),
+      constraints: const BoxConstraints(maxWidth: 500),
       child: Column(
         children: [
           _row([1, 2, 3]),
-          const SizedBox(height: 10),
+          const SizedBox(height: 15),
           _row([4, 5, 6]),
-          const SizedBox(height: 10),
+          const SizedBox(height: 15),
           _row([7, 8, 9]),
-          const SizedBox(height: 10),
+          const SizedBox(height: 15),
           Row(
+
             children: [
               Expanded(
                 child: _actionBtn(
@@ -105,9 +110,9 @@ class _Keypad extends StatelessWidget {
                   onPressed: disabled ? null : onClear,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 15),
               Expanded(child: _digitBtn(0)),
-              const SizedBox(width: 10),
+              const SizedBox(width: 15),
               Expanded(
                 child: _actionBtn(
                   icon: Icons.backspace_outlined,
@@ -127,7 +132,7 @@ class _Keypad extends StatelessWidget {
       children: [
         for (var i = 0; i < digits.length; i++) ...[
           Expanded(child: _digitBtn(digits[i])),
-          if (i != digits.length - 1) const SizedBox(width: 10),
+          if (i != digits.length - 1) const SizedBox(width: 15),
         ]
       ],
     );
@@ -135,7 +140,7 @@ class _Keypad extends StatelessWidget {
 
   Widget _digitBtn(int digit) {
     return SizedBox(
-      height: 56,
+      height: 80,
       child: FilledButton(
         onPressed: disabled ? null : () => onDigit(digit),
         child: Text(
@@ -152,7 +157,7 @@ class _Keypad extends StatelessWidget {
     required VoidCallback? onPressed,
   }) {
     return SizedBox(
-      height: 56,
+      height: 80,
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: Icon(icon),

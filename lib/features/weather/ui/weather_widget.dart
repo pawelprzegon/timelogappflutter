@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ui/responsive.dart';
 import '../state/weather_auto_refresh.dart';
 import '../state/weather_controller.dart';
 
@@ -109,6 +110,9 @@ class _Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final isNotPhone = Responsive.deviceSize(context) != DeviceSize.phone;
+
     return IntrinsicHeight(
       child: Row(
         key: const ValueKey('weather'),
@@ -147,7 +151,7 @@ class _Content extends StatelessWidget {
             ),
           ),
           // SEPARATOREK I LISTA DNI
-          if (daily.isNotEmpty) ...[
+          if (daily.isNotEmpty && isNotPhone) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: VerticalDivider(
