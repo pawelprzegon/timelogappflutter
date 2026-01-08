@@ -117,9 +117,16 @@ flutter:
 
 flutter_native_splash:
   color: "#0B0F14"
-  image: assets/images/timelog.png
+  image: assets/icons/android-icon-512.png
   android: true
   ios: true
-  android_gravity: center
-  ios_content_mode: center
   fullscreen: true
+  branding: assets/icons/text-logo.png
+
+  # NAJLEPSZA OPCJA:
+  # Użyj tej właściwości, aby logo nie dotykało krawędzi
+  android_12:
+    image: assets/icons/android-icon-512.png
+    color: "#0B0F14"
+    icon_background_color: "#0B0F14"
+    branding: assets/icons/text-logo.png
