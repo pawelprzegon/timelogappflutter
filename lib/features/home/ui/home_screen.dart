@@ -6,7 +6,7 @@ import '../../../core/ui/responsive.dart';
 import '../../admin/state/admin_controller.dart';
 import '../../qr/ui/qr_pane.dart';
 import '../../rfid/state/rfid_bootstrap.dart';
-import '../../session/ui/widgets/session_snackbar_listener.dart';
+import '../../session/ui/widgets/common/session_snackbar_listener.dart';
 import '../state/clock_controller.dart';
 import '../state/connectivity_controller.dart';
 import '../state/input_coordinator.dart';

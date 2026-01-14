@@ -117,16 +117,15 @@ flutter:
 
 flutter_native_splash:
   color: "#0B0F14"
-  image: assets/icons/android-icon-512.png
-  android: true
-  ios: true
-  fullscreen: true
-  branding: assets/icons/text-logo-filled.png
-
-  # NAJLEPSZA OPCJA:
-  # Użyj tej właściwości, aby logo nie dotykało krawędzi
-  android_12:
-    image: assets/icons/android-icon-512.png
-    color: "#0B0F14"
-    icon_background_color: "#0B0F14"
-    branding: assets/icons/text-logo-filled.png
+#  image: assets/icons/android-icon-512.png
+#  branding: assets/icons/text-logo-filled.png
+#  # Usuń branding_bottom - on nie istnieje w tym pakiecie
+#
+#  android: true
+#  ios: true
+#  fullscreen: true
+#
+#  android_12:
+#    image: assets/icons/android-icon-512.png
+#    icon_background_color: "#0B0F14"
+#    branding: assets/icons/text-logo-filled.png

@@ -1,48 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../home/state/input_coordinator.dart';
-import '../../state/session_controller.dart';
-import '../../state/session_state.dart';
+import '../../../../home/state/input_coordinator.dart';
+import '../../../state/session_controller.dart';
+import '../../../state/session_state.dart';
 import 'session_user_card.dart';
-import 'session_active_card.dart';
-import 'session_actions.dart';
-import 'session_error_banner.dart';
-import 'session_busy_overlay.dart';
+import '../common/session_active_card.dart';
+import '../common/session_actions.dart';
+import '../common/session_error_banner.dart';
+import '../common/session_busy_overlay.dart';
 
-class SessionShell extends ConsumerStatefulWidget {
-  const SessionShell({super.key, required this.session});
+class SessionShellSimple extends ConsumerStatefulWidget {
+  const SessionShellSimple({super.key, required this.session});
   final SessionState session;
 
   @override
-  ConsumerState<SessionShell> createState() => _SessionShellState();
+  ConsumerState<SessionShellSimple> createState() => _SessionShellSimpleState();
 }
 
-class _SessionShellState extends ConsumerState<SessionShell>
+class _SessionShellSimpleState extends ConsumerState<SessionShellSimple>
     with SingleTickerProviderStateMixin {
   static const _autoCloseDuration = Duration(seconds: 5);
 
   late final AnimationController _autoCloseCtrl;
 
   @override
-  void didUpdateWidget(covariant SessionShell oldWidget) {
+  @override
+  void didUpdateWidget(covariant SessionShellSimple oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Pauza/wznowienie
-    if (widget.session.uiPaused != oldWidget.session.uiPaused) {
-      if (widget.session.uiPaused) {
-        // ✅ wymaganie: reset do 5 i czekaj (nie odliczaj)
-        _autoCloseCtrl.stop();
-        _autoCloseCtrl.value = 1.0; // pełny pasek
-      } else {
-        // ✅ wróciliśmy z pickera -> odliczaj od 5 w dół
-        _restartAutoClose();
-      }
-    }
-
-    // Restart paska (tylko jeśli nie pauzujemy)
-    if (!widget.session.uiPaused &&
-        widget.session.uiBump != oldWidget.session.uiBump) {
+    if (widget.session.uiBump != oldWidget.session.uiBump) {
       _restartAutoClose();
     }
   }
@@ -104,8 +91,8 @@ class _SessionShellState extends ConsumerState<SessionShell>
 
     return Listener(
       behavior: HitTestBehavior.translucent,
-      onPointerDown: (_) { if (!widget.session.uiPaused) _restartAutoClose(); },
-      onPointerMove: (_) { if (!widget.session.uiPaused) _restartAutoClose(); },
+      onPointerDown: (_) => _restartAutoClose(),
+      onPointerMove: (_) => _restartAutoClose(),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
@@ -148,8 +135,8 @@ class _SessionShellState extends ConsumerState<SessionShell>
                                 SizedBox(height: 12 * scale),
                               ],
                               SessionUserCard(user: session.user, scale: scale),
-                              SizedBox(height: 14 * scale),
-                              SessionActiveCard(active: session.active, scale: scale),
+                              // SizedBox(height: 14 * scale),
+                              // SessionActiveCard(active: session.active, scale: scale),
                               SizedBox(height: 16 * scale),
                               SessionActions(
                                 active: session.active,

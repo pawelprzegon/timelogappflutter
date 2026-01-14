@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../state/session_controller.dart';
-import '../../state/session_event.dart';
+import '../../../state/session_controller.dart';
+import '../../../state/session_event.dart';
 
 class SessionListener extends ConsumerWidget {
   const SessionListener({super.key, required this.child});

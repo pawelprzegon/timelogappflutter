@@ -6,6 +6,7 @@ import 'package:timelogappflutter/features/admin/widgets/theme_accent_picker.dar
 import '../state/admin_controller.dart';
 import '../../home/state/interaction_controller.dart';
 import '../../home/state/interaction_state.dart';
+import '../widgets/session_ui_toggle.dart';
 import '../widgets/wakelock_toogle.dart';
 import '../widgets/kiosk_toogle.dart';
 
@@ -87,6 +88,14 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
+
+              Card(
+                  margin: EdgeInsets.all(5.0),
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: const SessionUiToggle(),
+                  )
+              ),
 
               Card(
                 margin: EdgeInsets.all(5.0),

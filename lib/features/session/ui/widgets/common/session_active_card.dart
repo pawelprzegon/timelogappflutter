@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/state/ticker.dart';
-import '../../model/active_session.dart';
+import '../../../../core/state/ticker.dart';
+import '../../../model/active_session.dart';
 
 class SessionActiveCard extends ConsumerWidget {
   const SessionActiveCard({super.key, required this.active, required this.scale});
