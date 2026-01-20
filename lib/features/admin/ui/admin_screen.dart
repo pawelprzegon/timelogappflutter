@@ -76,7 +76,10 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
         appBar: AppBar(
           title: const Text('Admin'),
           actions: [
-            Text('Logs'),
+            IconButton(
+                onPressed: () => context.push('/rfid-writer'),
+                icon: Icon(Icons.nfc)
+            ),
             IconButton(
                 onPressed: () => context.push('/logger'),
                 icon: Icon(Icons.history)

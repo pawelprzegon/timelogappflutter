@@ -24,7 +24,7 @@ class DeviceCard extends ConsumerWidget {
           children: [
             Flexible(
               child: Text(
-                rfid.isConnected ? 'RFID: podłączony' : 'RFID: odłączony', // Skróciłem tekst, by zyskać miejsce
+                rfid.isConnected ? 'RFID: podłączony' : 'RFID: odłączony',
                 textAlign: TextAlign.right,
                 style: const TextStyle(fontSize: 12),
                 overflow: TextOverflow.ellipsis,

@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../device/data/device_api.dart';
 import '../../device/data/device_providers.dart';
 import '../../session/model/auth_input.dart';
 import '../../session/state/session_controller.dart';

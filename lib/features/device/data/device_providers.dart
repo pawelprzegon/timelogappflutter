@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/http/dio_provider.dart';
 import '../../admin/state/admin_controller.dart';
+import '../../admin/state/user_model.dart';
 import 'device_api.dart';
 
 final deviceTokenProvider = Provider<String>((ref) {
@@ -11,4 +12,9 @@ final deviceApiProvider = Provider<DeviceApi>((ref) {
   final dio = ref.watch(dioProvider);
   final token = ref.watch(deviceTokenProvider);
   return DeviceApi(dio, token);
+});
+
+final deviceUsersProvider = FutureProvider<List<UserListModel>>((ref) async {
+  final api = ref.watch(deviceApiProvider);
+  return api.getUserList();
 });
