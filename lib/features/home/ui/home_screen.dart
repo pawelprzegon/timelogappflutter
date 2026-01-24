@@ -9,13 +9,14 @@ import '../../rfid/state/rfid_bootstrap.dart';
 import '../../session/ui/widgets/session_snackbar_listener.dart';
 import '../state/clock_controller.dart';
 import '../state/connectivity_controller.dart';
+import '../state/hold_to_open_controller.dart';
 import '../state/input_coordinator.dart';
 import '../state/mode_controller.dart';
 
-import 'widgets/home_header.dart';
-import 'widgets/home_footer.dart';
-import 'widgets/mode_toggle.dart';
-import 'widgets/offline_banner.dart';
+import '../widgets/home_header.dart';
+import '../widgets/home_footer.dart';
+import '../widgets/mode_toggle.dart';
+import '../widgets/offline_banner.dart';
 
 import '../../session/state/session_controller.dart';
 import '../../session/ui/session_modal.dart';
@@ -88,6 +89,7 @@ class HomeScreen extends ConsumerWidget {
 
     return SessionListener(
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF0B0F14),
         body: Listener(
           behavior: HitTestBehavior.translucent,
@@ -165,11 +167,7 @@ class HomeScreen extends ConsumerWidget {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    ElevatedButton.icon(
-                                      onPressed: () => context.push('/admin'),
-                                      icon: const Icon(Icons.admin_panel_settings),
-                                      label: const Text('Otwórz Admin'),
-                                    ),
+                                    HoldToOpenAdminButton(),
                                   ],
                                 ),
                               ],

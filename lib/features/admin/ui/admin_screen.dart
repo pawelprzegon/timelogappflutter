@@ -20,6 +20,7 @@ class AdminScreen extends ConsumerStatefulWidget {
 class _AdminScreenState extends ConsumerState<AdminScreen> {
   late final TextEditingController _tokenCtrl;
   late final TextEditingController _offlineCtrl;
+  late final TextEditingController _adminPanelCtrl;
 
   bool _syncedOnce = false;
 
@@ -33,12 +34,14 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
     // Bo ref w initState działa, ale UI jeszcze się “montuje”. Ten callback gwarantuje, że robisz to po pierwszym renderze (bez dziwnych edge-case).
     _tokenCtrl = TextEditingController();
     _offlineCtrl = TextEditingController();
+    _adminPanelCtrl = TextEditingController();
   }
 
   @override
   void dispose() {
     _tokenCtrl.dispose();
     _offlineCtrl.dispose();
+    _adminPanelCtrl.dispose();
     super.dispose();
   }
 
@@ -50,6 +53,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
 
     _tokenCtrl.text = state.token;
     _offlineCtrl.text = state.offlineMessage;
+    _adminPanelCtrl.text = state.adminPanelPassword;
     _syncedOnce = true;
   }
 
@@ -171,6 +175,37 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                           );
                         },
                         child: const Text('Zapisz komunikat offline'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              Card(
+                margin: const EdgeInsets.all(5.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      LabeltextfieldWidget(
+                        label: 'Hasło Panelu Admina',
+                        controller: _adminPanelCtrl,
+                        hintText: 'Wpisz hasło...',
+                        onChanged: ctrl.setAdminPasswordLocal,
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: () async {
+                          await ctrl.saveAdminPassword();
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Hasło panelu admina zapisane')),
+                          );
+                        },
+                        child: const Text('Zapisz hasło'),
                       ),
                     ],
                   ),

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DevicePrefs {
   static const _kToken = 'device_token';
   static const _kOfflineMessage = 'offline_message';
+  static const _kAdminPassword = 'admin_panel_password';
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -33,6 +34,16 @@ class DevicePrefs {
     } else {
       await prefs.setString(_kOfflineMessage, v);
     }
+  }
+
+  static Future<String?> getAdminPassword() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_kAdminPassword);
+  }
+
+  static Future<void> setAdminPassword(String v) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_kAdminPassword, v);
   }
 
 }
