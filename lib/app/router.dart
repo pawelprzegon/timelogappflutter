@@ -10,6 +10,6 @@ final router = GoRouter(
     GoRoute(path: '/', builder: (_,__) => const HomeScreen()),
     GoRoute(path: '/admin', builder: (_,__) => const AdminScreen()),
     GoRoute(path: '/logger', builder: (_,__) => const LogsScreen()),
-    GoRoute(path: '/rfid-writer', builder: (_,__) => const PickUserDropdown()),
+    GoRoute(path: '/rfid-writer', builder: (_,__) => const RfidWriterScreen()),
   ],
 );

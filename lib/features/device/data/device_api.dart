@@ -282,4 +282,34 @@ class DeviceApi {
       message: 'Serwer zwrócił błąd: $code',
     );
   }
+
+  Future<UserListModel> assignNfcTag({
+    required int userId,
+    required String nfcUid,
+  }) async {
+    if (!hasToken) {
+      throw StateError('Brak tokena urządzenia – zapisz go w panelu Admina.');
+    }
+
+    // TODO: Zmienić endpoint aktualizowania usera
+
+    final res = await _dio.patch(
+      '$_basePath/assign-nfc',
+      queryParameters: {'token': _deviceToken, 'userId': userId},
+      data: {'NFCTagID': nfcUid},
+      options: Options(validateStatus: (_) => true),
+    );
+
+    final code = res.statusCode ?? 0;
+    if (code >= 200 && code < 300 && res.data is Map) {
+      return UserListModel.fromJson(Map<String, dynamic>.from(res.data as Map));
+    }
+
+    throw DioException(
+      requestOptions: res.requestOptions,
+      response: res,
+      type: DioExceptionType.badResponse,
+      message: 'Serwer zwrócił błąd: $code',
+    );
+  }
 }
