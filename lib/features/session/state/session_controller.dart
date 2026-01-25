@@ -94,6 +94,15 @@ class SessionController extends StateNotifier<SessionState> {
 
   void close() => state = SessionState.closed;
 
+  void emitError(String message) {
+    state = SessionState.closed.copyWith(
+      error: message,
+      event: SessionEvent.error(message),
+      isBusy: false,
+      isOpen: false,
+    );
+  }
+
   Future<void> refresh() async {
     final auth = state.auth;
     if (auth == null) return;
