@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../state/mode_controller.dart';
-import '../../state/input_coordinator.dart';
+import '../state/mode_controller.dart';
+import '../state/input_coordinator.dart';
 
 class ModeToggle extends ConsumerWidget {
   const ModeToggle({super.key, required this.isEnabled});

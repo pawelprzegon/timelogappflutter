@@ -32,7 +32,7 @@ class SessionErrorHandler {
       case 400: return 'Błędne dane zapytania.';
       case 401: return 'Błąd autoryzacji. Niepoprawny PIN lub Token.';
       case 403: return 'Brak uprawnień do wykonania tej akcji.';
-      case 404: return 'Nie znaleziono danych na serwerze.';
+      case 404: return 'Nie znaleziono pracownika.';
       case 422: return 'Serwer nie może przetworzyć danych (Błąd walidacji).';
       case 500: return 'Błąd serwera. Spróbuj ponownie za chwilę.';
       default: return 'Błąd połączenia (Status: $status)';

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../state/hold_to_open_controller.dart';
+
 String _formatDate(DateTime dt) {
   const days = ['pon', 'wt', 'śr', 'czw', 'pt', 'sob', 'nd'];
   const months = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
@@ -25,17 +27,7 @@ class HomeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        InkWell(
-          onTap: () => context.push('/admin'),
-          borderRadius: BorderRadius.circular(12 * scale),
-          child: SizedBox(
-            width: 72,
-            height: 72,
-            child: Center(
-              child: Image.asset('assets/images/timelog.png', height: 56),
-            ),
-          ),
-        ),
+        HoldToOpenAdminButton(),
         const Spacer(),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,

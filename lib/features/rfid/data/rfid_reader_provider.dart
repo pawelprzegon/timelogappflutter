@@ -5,7 +5,7 @@ import 'package:usbnfcreader/usbnfcreader.dart';
 import '../state/rfid_controller.dart';
 
 /// Stream UID-ów z ACR122U (np. "04A1B2C3D4").
-/// Hardware działa w tle, a “czy wolno” rozstrzygamy osobno (gate) w kolejnym kroku.
+
 final rfidUidStreamProvider = StreamProvider<String>((ref) {
   final controller = StreamController<String>.broadcast();
   final reader = Usbnfcreader.instance;

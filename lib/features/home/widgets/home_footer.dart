@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timelogappflutter/features/device/ui/device_widget.dart';
 
-import '../../../weather/ui/weather_widget.dart';
+import '../../weather/ui/weather_widget.dart';
 
 class HomeFooter extends StatelessWidget {
   const HomeFooter({
