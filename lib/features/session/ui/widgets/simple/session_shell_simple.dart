@@ -25,7 +25,6 @@ class _SessionShellSimpleState extends ConsumerState<SessionShellSimple>
   late final AnimationController _autoCloseCtrl;
 
   @override
-  @override
   void didUpdateWidget(covariant SessionShellSimple oldWidget) {
     super.didUpdateWidget(oldWidget);
 
@@ -33,6 +32,35 @@ class _SessionShellSimpleState extends ConsumerState<SessionShellSimple>
       _restartAutoClose();
     }
   }
+
+  // TODO: PREPARATION FOR AUTOSTART
+  // @override
+  // void didUpdateWidget(covariant SessionShellSimple oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //
+  //   // 1. Logika restartu paska (już masz)
+  //   if (widget.session.uiBump != oldWidget.session.uiBump) {
+  //     _restartAutoClose();
+  //   }
+  //
+  //   // 2. Logika automatycznego startu i powrotu
+  //   final session = widget.session;
+  //   final user = session.user;
+  //
+  //   if (user != null &&
+  //       user['active'] == true &&
+  //       user['contracts']?.length == 1) {
+  //
+  //     // Wykonujemy akcję po zakończeniu bieżącego renderowania (post frame callback)
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       final cid = user['contracts'][0]['id'];
+  //       ref.read(sessionControllerProvider.notifier).startShiftWithContract(cid);
+  //
+  //       // Powrót (zamknięcie)
+  //       _closeModal();
+  //     });
+  //   }
+  // }
 
 
   @override
